@@ -24,54 +24,98 @@
 
 namespace IsolationForest
 {
-	
-IsolationForest::IsolationForest() :
-	m_numTreesToCreate(0),
-	m_subSamplingSize(0)
-{
-}
-
-IsolationForest::IsolationForest(uint32_t numTrees, uint32_t subSamplingSize) :
-	m_numTreesToCreate(numTrees),
-	m_subSamplingSize(subSamplingSize)
-{
-}
-
-IsolationForest::~IsolationForest()
-{
-	Destroy();
-}
-
-void IsolationForest::Fit(const FeatureList& nodes)
-{
-	for (size_t i = 0; i < m_numTreesToCreate; ++i)
+	IsolationForest::IsolationForest() :
+		m_randomizer(new Randomizer),
+		m_numTreesToCreate(0),
+		m_subSamplingSize(0)
 	{
-		FeatureList::const_iterator iter = nodes.begin();
-		while (iter != nodes.end())
+	}
+
+	IsolationForest::IsolationForest(uint32_t numTrees, uint32_t subSamplingSize) :
+		m_randomizer(new Randomizer),
+		m_numTreesToCreate(numTrees),
+		m_subSamplingSize(subSamplingSize)
+	{
+	}
+
+	IsolationForest::~IsolationForest()
+	{
+		if (m_randomizer)
 		{
-			++iter;
+			delete m_randomizer;
+			m_randomizer = NULL;
+		}
+		DestroyForest();
+	}
+
+	void IsolationForest::AddSample(const Sample& sample)
+	{
+		// Update the min and max values for each feature.
+		const FeaturePtrList& features = sample.Features();
+		FeaturePtrList::const_iterator featureIter = features.begin();
+		while (featureIter != features.end())
+		{
+			FeaturePtr feature = (*featureIter);
+			const std::string& featureName = feature->Name();
+			uint64_t featureValue = feature->Value();
+
+			// Add the feature to the list if this is the first time we're seeing it.
+			// Otherwise, just update the min and max values.
+			if (m_features.count(featureName) == 0)
+			{
+				Uint64Pair featureValuePair = std::make_pair(featureValue, featureValue);
+				m_features.insert(std::make_pair(featureName, featureValuePair));
+			}
+			else
+			{
+				Uint64Pair& featureValuePair = m_features.at(featureName);
+				if (featureValuePair.first < featureValue)
+					featureValuePair.first = featureValue;
+				if (featureValuePair.second > featureValue)
+					featureValuePair.second = featureValue;
+			}
+			++featureIter;
 		}
 	}
-}
 
-void IsolationForest::Predict(const FeatureList& nodes)
-{
+	NodePtr IsolationForest::CreateTree()
+	{
+		// Sanity check.
+		if (m_features.size() <= 1)
+		{
+			return NULL;
+		}
+		
+		// Randomly select a feature.
 
-}
+		// Randomly select a split value, somewhere between the min and max values.
 
-FeatureTypePtr IsolationForest::Insert(FeatureTypePtr& root, const FeatureTypePtr& node)
-{
-	if (!root)
-		root = node;
-	else if (node < root)
-		root->left = Insert(root->left, node);
-	else
-		root->right = Insert(root->right, node);
-	return root;
-}
 
-void IsolationForest::Destroy()
-{
-}
+		return NULL;
+	}
 
+	void IsolationForest::CreateForest()
+	{
+		for (size_t i = 0; i < m_numTreesToCreate; ++i)
+		{
+			NodePtr tree = CreateTree();
+			if (tree)
+			{
+				m_trees.push_back(tree);
+			}
+		}
+	}
+
+	void IsolationForest::Predict(const Sample& sample)
+	{
+	}
+
+	void IsolationForest::DestroyForest()
+	{
+	}
+
+	NodePtr IsolationForest::Insert(NodePtr& root, const NodePtr& node)
+	{
+		return NULL;
+	}
 };

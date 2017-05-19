@@ -22,67 +22,105 @@
 
 #pragma once
 
+#include <map>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string>
+#include <time.h>
 #include <vector>
 
 namespace IsolationForest
 {
-	
-template <class K, class V>
-class Feature
-{
-public:
-	Feature() { left = right = NULL; };
-	virtual ~Feature() {};
-	
-	virtual bool operator <(Feature const& b) = 0;
-	
-	virtual const K& Key() const = 0;
-	virtual const V& Value() const = 0;
-	
-	Feature* left;
-	Feature* right;
-};
+	/// Each feature has a name and value.
+	class Feature
+	{
+	public:
+		Feature(const std::string& name, uint64_t value) { m_name = name; m_value = value; };
+		virtual ~Feature() {};
 
-typedef Feature<class K, class V> FeatureType;
-typedef FeatureType* FeatureTypePtr;
-typedef std::vector<FeatureTypePtr> FeatureList;
+		virtual std::string Name() const { return m_name; };
+		virtual uint64_t Value() const { return m_value; };
 
-class Sample
-{
-public:
-	Sample() {};
-	virtual ~Sample() {};
+	private:
+		std::string m_name;
+		uint64_t m_value;
 
-	std::string name;
+		Feature() {};
+	};
 
-};
+	typedef Feature* FeaturePtr;
+	typedef std::vector<FeaturePtr> FeaturePtrList;
 
-class IsolationForestRandomizer
-{
-public:
-	IsolationForestRandomizer() {} ;
-	virtual ~IsolationForestRandomizer() {};
-};
+	/// Each sample has a name and list of features.
+	class Sample
+	{
+	public:
+		Sample(const std::string& name) { m_name = name; };
+		virtual ~Sample() {};
 
-class IsolationForest
-{
-public:
-	IsolationForest();
-	IsolationForest(uint32_t numTrees, uint32_t subSamplingSize);
-	virtual ~IsolationForest();
-	
-	void Fit(const FeatureList& nodes);
-	void Predict(const FeatureList& nodes);
+		virtual FeaturePtrList Features() const { return m_features; };
 
-private:
-	std::vector<FeatureTypePtr> m_trees;
-	uint32_t m_numTreesToCreate;
-	uint32_t m_subSamplingSize;
-	
-	FeatureTypePtr Insert(FeatureTypePtr& root, const FeatureTypePtr& node);
-	void Destroy();
-};
+	private:
+		std::string m_name;
+		FeaturePtrList m_features;
 
+		Sample() {};
+	};
+
+	typedef Sample* SamplePtr;
+	typedef std::vector<SamplePtr> SamplePtrList;
+
+	/// Tree node, used internally.
+	class Node
+	{
+	public:
+		Node() { m_right = m_left = NULL; };
+		virtual ~Node() {};
+
+	private:
+		std::string featureName;
+		uint64_t splitValue;
+
+		Node* m_right;
+		Node* m_left;
+	};
+
+	typedef Node* NodePtr;
+	typedef std::vector<NodePtr> NodePtrList;
+
+	/// Inherit from this class if you wish to provide your own randomizer.
+	class Randomizer
+	{
+	public:
+		Randomizer() {} ;
+		virtual ~Randomizer() { srand((unsigned int)time(NULL)); };
+
+		virtual int Rand() const { return rand(); };
+	};
+
+	typedef std::pair<uint64_t, uint64_t> Uint64Pair;
+
+	class IsolationForest
+	{
+	public:
+		IsolationForest();
+		IsolationForest(uint32_t numTrees, uint32_t subSamplingSize);
+		virtual ~IsolationForest();
+		
+		void AddSample(const Sample& sample);
+		void CreateForest();
+		void Predict(const Sample& sample);
+
+	private:
+		Randomizer* m_randomizer;
+		std::map<std::string, Uint64Pair> m_features;
+		std::vector<NodePtr> m_trees;
+		uint32_t m_numTreesToCreate;
+		uint32_t m_subSamplingSize;
+
+		NodePtr CreateTree();
+		void DestroyForest();
+
+		NodePtr Insert(NodePtr& root, const NodePtr& node);
+	};
 };

@@ -25,45 +25,24 @@
 
 using namespace IsolationForest;
 
-class TestFeature : public Feature<uint32_t, uint32_t>
-{
-public:
-	TestFeature() { key = value = 0; };
-	TestFeature(uint32_t x, uint32_t y) { key = x; value = y; };
-	virtual ~TestFeature() {};
-
-	virtual bool operator < (Feature const& b)
-	{
-		return key < b.Key();
-	}
-	
-	virtual const uint32_t& Key() const { return key; };
-	virtual const uint32_t& Value() const { return value; };
-
-	uint32_t key;
-	uint32_t value;
-};
-
 int main(int argc, const char * argv[])
 {
-	std::vector<TestFeature*> training;
-	std::vector<TestFeature*> test;
-	std::vector<TestFeature*> outliers;
-	
+	std::vector<FeaturePtr> training;
+	std::vector<FeaturePtr> test;
+	std::vector<FeaturePtr> outliers;
+
 	srand((unsigned int)time(NULL));
 
 	for (size_t i = 0; i < 100; ++i)
 	{
 		uint32_t x = 0.3 * rand();
-		uint32_t y = 0.3 * rand();
-		training.push_back(new TestFeature(x, y));
+		training.push_back(new Feature("foo", x));
 	}
 
 	for (size_t i = 0; i < 20; ++i)
 	{
 		uint32_t x = 0.3 * rand();
-		uint32_t y = 0.3 * rand();
-		test.push_back(new TestFeature(x, y));
+		test.push_back(new Feature("foo", x));
 	}
 
 	return 0;
