@@ -100,15 +100,15 @@ namespace IsolationForest
 
 	typedef std::pair<uint64_t, uint64_t> Uint64Pair;
 
-	class IsolationForest
+	class Forest
 	{
 	public:
-		IsolationForest();
-		IsolationForest(uint32_t numTrees, uint32_t subSamplingSize);
-		virtual ~IsolationForest();
+		Forest();
+		Forest(uint32_t numTrees, uint32_t subSamplingSize);
+		virtual ~Forest();
 		
 		void AddSample(const Sample& sample);
-		void CreateForest();
+		void Create();
 		void Predict(const Sample& sample);
 
 	private:
@@ -119,7 +119,7 @@ namespace IsolationForest
 		uint32_t m_subSamplingSize;
 
 		NodePtr CreateTree();
-		void DestroyForest();
+		void Destroy();
 
 		NodePtr Insert(NodePtr& root, const NodePtr& node);
 	};

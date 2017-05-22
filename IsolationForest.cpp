@@ -24,31 +24,31 @@
 
 namespace IsolationForest
 {
-	IsolationForest::IsolationForest() :
+	Forest::Forest() :
 		m_randomizer(new Randomizer),
 		m_numTreesToCreate(0),
 		m_subSamplingSize(0)
 	{
 	}
 
-	IsolationForest::IsolationForest(uint32_t numTrees, uint32_t subSamplingSize) :
+	Forest::Forest(uint32_t numTrees, uint32_t subSamplingSize) :
 		m_randomizer(new Randomizer),
 		m_numTreesToCreate(numTrees),
 		m_subSamplingSize(subSamplingSize)
 	{
 	}
 
-	IsolationForest::~IsolationForest()
+	Forest::~Forest()
 	{
 		if (m_randomizer)
 		{
 			delete m_randomizer;
 			m_randomizer = NULL;
 		}
-		DestroyForest();
+		Destroy();
 	}
 
-	void IsolationForest::AddSample(const Sample& sample)
+	void Forest::AddSample(const Sample& sample)
 	{
 		// Update the min and max values for each feature.
 		const FeaturePtrList& features = sample.Features();
@@ -78,7 +78,7 @@ namespace IsolationForest
 		}
 	}
 
-	NodePtr IsolationForest::CreateTree()
+	NodePtr Forest::CreateTree()
 	{
 		// Sanity check.
 		if (m_features.size() <= 1)
@@ -94,7 +94,7 @@ namespace IsolationForest
 		return NULL;
 	}
 
-	void IsolationForest::CreateForest()
+	void Forest::Create()
 	{
 		for (size_t i = 0; i < m_numTreesToCreate; ++i)
 		{
@@ -106,15 +106,15 @@ namespace IsolationForest
 		}
 	}
 
-	void IsolationForest::Predict(const Sample& sample)
+	void Forest::Predict(const Sample& sample)
 	{
 	}
 
-	void IsolationForest::DestroyForest()
+	void Forest::Destroy()
 	{
 	}
 
-	NodePtr IsolationForest::Insert(NodePtr& root, const NodePtr& node)
+	NodePtr Forest::Insert(NodePtr& root, const NodePtr& node)
 	{
 		return NULL;
 	}

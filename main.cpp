@@ -27,22 +27,41 @@ using namespace IsolationForest;
 
 int main(int argc, const char * argv[])
 {
-	std::vector<FeaturePtr> training;
-	std::vector<FeaturePtr> test;
-	std::vector<FeaturePtr> outliers;
+	IsolationForest::Forest forest;
 
 	srand((unsigned int)time(NULL));
 
-	for (size_t i = 0; i < 100; ++i)
+	for (size_t i = 0; i < 10; ++i)
 	{
+		std::vector<FeaturePtr> training;
+
 		uint32_t x = 0.3 * rand();
+		uint32_t y = 0.3 * rand();
+
 		training.push_back(new Feature("foo", x));
+		training.push_back(new Feature("bar", y));
 	}
 
-	for (size_t i = 0; i < 20; ++i)
+	for (size_t i = 0; i < 10; ++i)
 	{
+		std::vector<FeaturePtr> test;
+
 		uint32_t x = 0.3 * rand();
+		uint32_t y = 0.3 * rand();
+
 		test.push_back(new Feature("foo", x));
+		test.push_back(new Feature("bar", y));
+	}
+
+	for (size_t i = 0; i < 10; ++i)
+	{
+		std::vector<FeaturePtr> outliers;
+
+		uint32_t x = 1.0 + (0.5 * rand());
+		uint32_t y = 1.0 + (0.5 * rand());
+
+		outliers.push_back(new Feature("foo", x));
+		outliers.push_back(new Feature("bar", y));
 	}
 
 	return 0;
