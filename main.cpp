@@ -27,38 +27,50 @@ using namespace IsolationForest;
 
 int main(int argc, const char * argv[])
 {
-	IsolationForest::Forest forest;
+	Forest forest(10, 10);
 
 	srand((unsigned int)time(NULL));
 
+	// Training samples.
 	for (size_t i = 0; i < 10; ++i)
 	{
-		std::vector<FeaturePtr> training;
+		FeaturePtrList features;
+		Sample sample("");
 
-		uint32_t x = 0.3 * rand();
-		uint32_t y = 0.3 * rand();
+		uint32_t x = 0.3 * (rand() % 100);
+		uint32_t y = 0.3 * (rand() % 100);
 
-		training.push_back(new Feature("foo", x));
-		training.push_back(new Feature("bar", y));
+		features.push_back(new Feature("foo", x));
+		features.push_back(new Feature("bar", y));
+
+		sample.AddFeatures(features);
+		forest.AddSample(sample);
 	}
 
+	forest.Create();
+
+	// Test samples (similar to training samples).
 	for (size_t i = 0; i < 10; ++i)
 	{
-		std::vector<FeaturePtr> test;
+		FeaturePtrList features;
+		Sample sample("");
 
-		uint32_t x = 0.3 * rand();
-		uint32_t y = 0.3 * rand();
+		uint32_t x = 0.3 * (rand() % 100);
+		uint32_t y = 0.3 * (rand() % 100);
 
-		test.push_back(new Feature("foo", x));
-		test.push_back(new Feature("bar", y));
+		features.push_back(new Feature("foo", x));
+		features.push_back(new Feature("bar", y));
+
+		sample.AddFeatures(features);
 	}
 
+	// Outlier samples (different from training samples).
 	for (size_t i = 0; i < 10; ++i)
 	{
 		std::vector<FeaturePtr> outliers;
 
-		uint32_t x = 1.0 + (0.5 * rand());
-		uint32_t y = 1.0 + (0.5 * rand());
+		uint32_t x = 25.0 + (0.5 * (rand() % 50));
+		uint32_t y = 25.0 + (0.5 * (rand() % 50));
 
 		outliers.push_back(new Feature("foo", x));
 		outliers.push_back(new Feature("bar", y));

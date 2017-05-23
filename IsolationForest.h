@@ -51,6 +51,7 @@ namespace IsolationForest
 	typedef Feature* FeaturePtr;
 	typedef std::vector<FeaturePtr> FeaturePtrList;
 
+	/// This class represents a sample.
 	/// Each sample has a name and list of features.
 	class Sample
 	{
@@ -58,6 +59,8 @@ namespace IsolationForest
 		Sample(const std::string& name) { m_name = name; };
 		virtual ~Sample() {};
 
+		virtual void AddFeatures(const FeaturePtrList& features) { m_features.insert(std::end(m_features), std::begin(features), std::end(features)); };
+		virtual void AddFeature(const FeaturePtr feature) { m_features.push_back(feature); };
 		virtual FeaturePtrList Features() const { return m_features; };
 
 	private:
@@ -88,7 +91,9 @@ namespace IsolationForest
 	typedef Node* NodePtr;
 	typedef std::vector<NodePtr> NodePtrList;
 
+	/// This class abstracts the random number generation.
 	/// Inherit from this class if you wish to provide your own randomizer.
+	/// Use Forest::SetRandomizer to override the default randomizer with one of your choosing.
 	class Randomizer
 	{
 	public:
@@ -106,13 +111,15 @@ namespace IsolationForest
 
 	typedef std::pair<uint64_t, uint64_t> Uint64Pair;
 
+	/// Isolation Forest implementation.
 	class Forest
 	{
 	public:
 		Forest();
 		Forest(uint32_t numTrees, uint32_t subSamplingSize);
 		virtual ~Forest();
-		
+
+		void SetRandomizer(Randomizer* newRandomizer);
 		void AddSample(const Sample& sample);
 		void Create();
 		void Predict(const Sample& sample);

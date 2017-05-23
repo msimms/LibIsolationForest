@@ -26,7 +26,7 @@ namespace IsolationForest
 {
 	Forest::Forest() :
 		m_randomizer(new Randomizer),
-		m_numTreesToCreate(0),
+		m_numTreesToCreate(10),
 		m_subSamplingSize(0)
 	{
 	}
@@ -48,6 +48,16 @@ namespace IsolationForest
 		Destroy();
 	}
 
+	void Forest::SetRandomizer(Randomizer* newRandomizer)
+	{
+		if (m_randomizer)
+		{
+			delete m_randomizer;
+			m_randomizer = NULL;
+		}
+		m_randomizer = newRandomizer;
+	}
+
 	void Forest::AddSample(const Sample& sample)
 	{
 		// Update the min and max values for each feature.
@@ -55,7 +65,7 @@ namespace IsolationForest
 		FeaturePtrList::const_iterator featureIter = features.begin();
 		while (featureIter != features.end())
 		{
-			FeaturePtr feature = (*featureIter);
+			const FeaturePtr feature = (*featureIter);
 			const std::string& featureName = feature->Name();
 			uint64_t featureValue = feature->Value();
 
@@ -87,6 +97,7 @@ namespace IsolationForest
 		}
 		
 		// Randomly select a feature.
+		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, m_features.size() - 1);
 
 		// Randomly select a split value, somewhere between the min and max values.
 
