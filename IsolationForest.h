@@ -23,8 +23,8 @@
 #pragma once
 
 #include <map>
+#include <random>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string>
 #include <time.h>
 #include <vector>
@@ -92,10 +92,16 @@ namespace IsolationForest
 	class Randomizer
 	{
 	public:
-		Randomizer() {} ;
+		Randomizer() : m_gen(m_rand()) {} ;
 		virtual ~Randomizer() { srand((unsigned int)time(NULL)); };
 
-		virtual int Rand() const { return rand(); };
+		virtual uint64_t Rand() { return m_dist(m_gen); };
+		virtual uint64_t RandUInt64(uint64_t min, uint64_t max) { return min + (Rand() % (max - min + 1)); }
+
+	private:
+		std::random_device m_rand;
+		std::mt19937_64 m_gen;
+		std::uniform_int_distribution<uint64_t> m_dist;
 	};
 
 	typedef std::pair<uint64_t, uint64_t> Uint64Pair;
