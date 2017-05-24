@@ -24,6 +24,7 @@
 
 #include <map>
 #include <random>
+#include <set>
 #include <stdint.h>
 #include <string>
 #include <time.h>
@@ -78,10 +79,14 @@ namespace IsolationForest
 	{
 	public:
 		Node();
-		Node(uint64_t splitValue);
+		Node(const std::string& featureName, uint64_t splitValue);
 		virtual ~Node();
 
-		virtual std::string Name() const { return m_featureName; };
+		virtual std::string FeatureName() const { return m_featureName; };
+		virtual uint64_t SplitValue() const { return m_splitValue; };
+
+		void SetLeftSubTree(Node* subtree);
+		void SetRightSubTree(Node* subtree);
 
 	private:
 		std::string m_featureName;
@@ -89,6 +94,9 @@ namespace IsolationForest
 
 		Node* m_left;
 		Node* m_right;
+
+		void DestroyLeftSubtree();
+		void DestroyRightSubtree();
 	};
 
 	typedef Node* NodePtr;
@@ -112,7 +120,8 @@ namespace IsolationForest
 		std::uniform_int_distribution<uint64_t> m_dist;
 	};
 
-	typedef std::pair<uint64_t, uint64_t> Uint64Pair;
+	typedef std::set<uint64_t> Uint64Set;
+	typedef std::map<std::string, Uint64Set> FeatureNameToValuesMap;
 
 	/// Isolation Forest implementation.
 	class Forest
@@ -125,16 +134,17 @@ namespace IsolationForest
 		void SetRandomizer(Randomizer* newRandomizer);
 		void AddSample(const Sample& sample);
 		void Create();
-		void Predict(const Sample& sample);
+		double Predict(const Sample& sample);
 
 	private:
 		Randomizer* m_randomizer; // Performs random number generation
-		std::map<std::string, Uint64Pair> m_featureMinMax; // Lists each feature and maps it to it's corresponding min and max values
-		std::vector<NodePtr> m_trees; // The decision trees that comprise the forest
+		FeatureNameToValuesMap m_featureValues; // Lists each feature and maps it to all unique values in the training set
+		NodePtrList m_trees; // The decision trees that comprise the forest
 		uint32_t m_numTreesToCreate; // The maximum number of trees to create
-		uint32_t m_subSamplingSize;
+		uint32_t m_subSamplingSize; // The maximum depth of a tree
 
-		NodePtr CreateTree();
+		NodePtr CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth);
+		uint64_t Predict(const Sample& sample, const NodePtr tree);
 		void DestroyTree(NodePtr tree);
 		void Destroy();
 		void DestroyRandomizer();

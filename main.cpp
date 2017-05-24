@@ -40,8 +40,8 @@ int main(int argc, const char * argv[])
 		uint32_t x = 0.3 * (rand() % 100);
 		uint32_t y = 0.3 * (rand() % 100);
 
-		features.push_back(new Feature("foo", x));
-		features.push_back(new Feature("bar", y));
+		features.push_back(new Feature("x", x));
+		features.push_back(new Feature("y", y));
 
 		sample.AddFeatures(features);
 		forest.AddSample(sample);
@@ -58,8 +58,8 @@ int main(int argc, const char * argv[])
 		uint32_t x = 0.3 * (rand() % 100);
 		uint32_t y = 0.3 * (rand() % 100);
 
-		features.push_back(new Feature("foo", x));
-		features.push_back(new Feature("bar", y));
+		features.push_back(new Feature("x", x));
+		features.push_back(new Feature("y", y));
 
 		sample.AddFeatures(features);
 	}
@@ -72,8 +72,8 @@ int main(int argc, const char * argv[])
 		uint32_t x = 25.0 + (0.5 * (rand() % 50));
 		uint32_t y = 25.0 + (0.5 * (rand() % 50));
 
-		outliers.push_back(new Feature("foo", x));
-		outliers.push_back(new Feature("bar", y));
+		outliers.push_back(new Feature("x", x));
+		outliers.push_back(new Feature("y", y));
 	}
 
 	return 0;

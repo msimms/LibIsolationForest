@@ -31,20 +31,43 @@ namespace IsolationForest
 	{
 	}
 
-	Node::Node(uint64_t splitValue) :
+	Node::Node(const std::string& featureName, uint64_t splitValue) :
 		m_left(NULL),
 		m_right(NULL),
+		m_featureName(featureName),
 		m_splitValue(splitValue)
 	{
 	}
 
 	Node::~Node()
 	{
+		DestroyLeftSubtree();
+		DestroyRightSubtree();
+	}
+
+	void Node::SetLeftSubTree(Node* subtree)
+	{
+		DestroyLeftSubtree();
+		m_left = subtree;
+	}
+
+	void Node::SetRightSubTree(Node* subtree)
+	{
+		DestroyRightSubtree();
+		m_right = subtree;
+	}
+
+	void Node::DestroyLeftSubtree()
+	{
 		if (m_left)
 		{
 			delete m_left;
 			m_left = NULL;
 		}
+	}
+
+	void Node::DestroyRightSubtree()
+	{
 		if (m_right)
 		{
 			delete m_right;
@@ -80,7 +103,8 @@ namespace IsolationForest
 
 	void Forest::AddSample(const Sample& sample)
 	{
-		// Update the min and max values for each feature of this sample.
+		// Add each of this sample's features to the list of known features
+		// with the corresponding set of unique values.
 		const FeaturePtrList& features = sample.Features();
 		FeaturePtrList::const_iterator featureIter = features.begin();
 		while (featureIter != features.end())
@@ -89,51 +113,82 @@ namespace IsolationForest
 			const std::string& featureName = feature->Name();
 			uint64_t featureValue = feature->Value();
 
-			// Add the feature to the list if this is the first time we're seeing it.
-			// Otherwise, just update the min and max values.
-			if (m_featureMinMax.count(featureName) == 0)
+			if (m_featureValues.count(featureName) == 0)
 			{
-				Uint64Pair featureValuePair = std::make_pair(featureValue, featureValue);
-				m_featureMinMax.insert(std::make_pair(featureName, featureValuePair));
+				Uint64Set featureValueSet;
+				featureValueSet.insert(featureValue);
+				m_featureValues.insert(std::make_pair(featureName, featureValueSet));
 			}
 			else
 			{
-				Uint64Pair& featureValuePair = m_featureMinMax.at(featureName);
-				if (featureValuePair.first < featureValue)
-					featureValuePair.first = featureValue;
-				if (featureValuePair.second > featureValue)
-					featureValuePair.second = featureValue;
+				Uint64Set& featureValueSet = m_featureValues.at(featureName);
+				featureValueSet.insert(featureValue);
 			}
+
 			++featureIter;
 		}
 	}
 
-	NodePtr Forest::CreateTree()
+	NodePtr Forest::CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth)
 	{
 		// Sanity check.
-		if (m_featureMinMax.size() <= 1)
+		if (featureValues.size() <= 1)
 		{
 			return NULL;
 		}
 
-		NodePtr tree = NULL;
-		
-		// Randomly select a feature.
-		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, m_featureMinMax.size() - 1);
-		std::map<std::string, Uint64Pair>::const_iterator featureIter = m_featureMinMax.begin();
-		std::advance(featureIter, selectedFeatureIndex);
+		// If we've exceeded the maximum desired depth, then stop.
+		if ((m_subSamplingSize > 0) && (depth >= m_subSamplingSize))
+		{
+			return NULL;
+		}
 
-		// Randomly select a split value, somewhere between the min and max values.
-		const Uint64Pair& minMax = (*featureIter).second;
-		size_t splitValue = (size_t)m_randomizer->RandUInt64(minMax.first, minMax.second);
+		// Randomly select a feature.
+		size_t selectedFeatureIndex = 0;
+		if (featureValues.size() > 1)
+			selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValues.size() - 1);
+		FeatureNameToValuesMap::const_iterator featureIter = featureValues.begin();
+		std::advance(featureIter, selectedFeatureIndex);
+		const std::string& featureName = (*featureIter).first;
+
+		// Randomly select a split value.
+		const Uint64Set& featureValueSet = (*featureIter).second;
+		size_t splitValueIndex = 0;
+		if (featureValueSet.size() > 1)
+			splitValueIndex = (size_t)m_randomizer->RandUInt64(0, featureValueSet.size() - 1);
+		Uint64Set::const_iterator splitValueIter = featureValueSet.begin();
+		std::advance(splitValueIter, splitValueIndex);
+		uint64_t splitValue = (*splitValueIter);
 
 		// Create a tree node to hold the split value.
-		NodePtr node = new Node(splitValue);
-
-		// If this is the first node we've created then it is, by definition, the root of the tree.
-		if (!tree)
+		NodePtr tree = new Node(featureName, splitValue);
+		if (tree)
 		{
-			tree = node;
+			// Create two versions of the feature value set that we just used,
+			// one for the left side of the tree and one for the right.
+			FeatureNameToValuesMap tempFeatureValues = featureValues;
+
+			// Create the left subtree.
+			if (splitValueIndex > 0)
+			{
+				Uint64Set leftFeatureValueSet = featureValueSet;
+				splitValueIter = leftFeatureValueSet.begin();
+				std::advance(splitValueIter, splitValueIndex);
+				leftFeatureValueSet.erase(splitValueIter, leftFeatureValueSet.end());
+				tempFeatureValues[featureName] = leftFeatureValueSet;
+				tree->SetLeftSubTree(CreateTree(tempFeatureValues, depth + 1));
+			}
+
+			// Create the right subtree.
+			if (splitValueIndex < featureValueSet.size() - 1)
+			{
+				Uint64Set rightFeatureValueSet = featureValueSet;
+				splitValueIter = rightFeatureValueSet.begin();
+				std::advance(splitValueIter, splitValueIndex + 1);
+				rightFeatureValueSet.erase(rightFeatureValueSet.begin(), splitValueIter);
+				tempFeatureValues[featureName] = rightFeatureValueSet;
+				tree->SetRightSubTree(CreateTree(tempFeatureValues, depth + 1));
+			}
 		}
 
 		return tree;
@@ -141,9 +196,11 @@ namespace IsolationForest
 
 	void Forest::Create()
 	{
+		m_trees.reserve(m_numTreesToCreate);
+
 		for (size_t i = 0; i < m_numTreesToCreate; ++i)
 		{
-			NodePtr tree = CreateTree();
+			NodePtr tree = CreateTree(m_featureValues, 0);
 			if (tree)
 			{
 				m_trees.push_back(tree);
@@ -151,14 +208,28 @@ namespace IsolationForest
 		}
 	}
 
-	void Forest::Predict(const Sample& sample)
+	uint64_t Forest::Predict(const Sample& sample, const NodePtr tree)
 	{
+		uint64_t score = 0;
 		const FeaturePtrList& features = sample.Features();
 		FeaturePtrList::const_iterator featureIter = features.begin();
 		while (featureIter != features.end())
 		{
 			++featureIter;
 		}
+		return score;
+	}
+
+	double Forest::Predict(const Sample& sample)
+	{
+		double score = (double)0.0;
+		NodePtrList::const_iterator treeIter = m_trees.begin();
+		while (treeIter != m_trees.end())
+		{
+			Predict(sample, (*treeIter));
+			++treeIter;
+		}
+		return score;
 	}
 
 	void Forest::DestroyTree(NodePtr tree)
