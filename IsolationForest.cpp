@@ -24,6 +24,34 @@
 
 namespace IsolationForest
 {
+	Node::Node() :
+		m_left(NULL),
+		m_right(NULL),
+		m_splitValue(0)
+	{
+	}
+
+	Node::Node(uint64_t splitValue) :
+		m_left(NULL),
+		m_right(NULL),
+		m_splitValue(splitValue)
+	{
+	}
+
+	Node::~Node()
+	{
+		if (m_left)
+		{
+			delete m_left;
+			m_left = NULL;
+		}
+		if (m_right)
+		{
+			delete m_right;
+			m_right = NULL;
+		}
+	}
+
 	Forest::Forest() :
 		m_randomizer(new Randomizer),
 		m_numTreesToCreate(10),
@@ -40,27 +68,19 @@ namespace IsolationForest
 
 	Forest::~Forest()
 	{
-		if (m_randomizer)
-		{
-			delete m_randomizer;
-			m_randomizer = NULL;
-		}
+		DestroyRandomizer();
 		Destroy();
 	}
 
 	void Forest::SetRandomizer(Randomizer* newRandomizer)
 	{
-		if (m_randomizer)
-		{
-			delete m_randomizer;
-			m_randomizer = NULL;
-		}
+		DestroyRandomizer();
 		m_randomizer = newRandomizer;
 	}
 
 	void Forest::AddSample(const Sample& sample)
 	{
-		// Update the min and max values for each feature.
+		// Update the min and max values for each feature of this sample.
 		const FeaturePtrList& features = sample.Features();
 		FeaturePtrList::const_iterator featureIter = features.begin();
 		while (featureIter != features.end())
@@ -71,14 +91,14 @@ namespace IsolationForest
 
 			// Add the feature to the list if this is the first time we're seeing it.
 			// Otherwise, just update the min and max values.
-			if (m_features.count(featureName) == 0)
+			if (m_featureMinMax.count(featureName) == 0)
 			{
 				Uint64Pair featureValuePair = std::make_pair(featureValue, featureValue);
-				m_features.insert(std::make_pair(featureName, featureValuePair));
+				m_featureMinMax.insert(std::make_pair(featureName, featureValuePair));
 			}
 			else
 			{
-				Uint64Pair& featureValuePair = m_features.at(featureName);
+				Uint64Pair& featureValuePair = m_featureMinMax.at(featureName);
 				if (featureValuePair.first < featureValue)
 					featureValuePair.first = featureValue;
 				if (featureValuePair.second > featureValue)
@@ -91,18 +111,32 @@ namespace IsolationForest
 	NodePtr Forest::CreateTree()
 	{
 		// Sanity check.
-		if (m_features.size() <= 1)
+		if (m_featureMinMax.size() <= 1)
 		{
 			return NULL;
 		}
+
+		NodePtr tree = NULL;
 		
 		// Randomly select a feature.
-		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, m_features.size() - 1);
+		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, m_featureMinMax.size() - 1);
+		std::map<std::string, Uint64Pair>::const_iterator featureIter = m_featureMinMax.begin();
+		std::advance(featureIter, selectedFeatureIndex);
 
 		// Randomly select a split value, somewhere between the min and max values.
+		const Uint64Pair& minMax = (*featureIter).second;
+		size_t splitValue = (size_t)m_randomizer->RandUInt64(minMax.first, minMax.second);
 
+		// Create a tree node to hold the split value.
+		NodePtr node = new Node(splitValue);
 
-		return NULL;
+		// If this is the first node we've created then it is, by definition, the root of the tree.
+		if (!tree)
+		{
+			tree = node;
+		}
+
+		return tree;
 	}
 
 	void Forest::Create()
@@ -119,14 +153,39 @@ namespace IsolationForest
 
 	void Forest::Predict(const Sample& sample)
 	{
+		const FeaturePtrList& features = sample.Features();
+		FeaturePtrList::const_iterator featureIter = features.begin();
+		while (featureIter != features.end())
+		{
+			++featureIter;
+		}
+	}
+
+	void Forest::DestroyTree(NodePtr tree)
+	{
+		if (tree)
+		{
+			delete tree;
+		}
 	}
 
 	void Forest::Destroy()
 	{
+		std::vector<NodePtr>::iterator iter = m_trees.begin();
+		while (iter != m_trees.end())
+		{
+			DestroyTree((*iter));
+			++iter;
+		}
+		m_trees.clear();
 	}
 
-	NodePtr Forest::Insert(NodePtr& root, const NodePtr& node)
+	void Forest::DestroyRandomizer()
 	{
-		return NULL;
+		if (m_randomizer)
+		{
+			delete m_randomizer;
+			m_randomizer = NULL;
+		}
 	}
 };

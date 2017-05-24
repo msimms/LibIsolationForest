@@ -77,15 +77,18 @@ namespace IsolationForest
 	class Node
 	{
 	public:
-		Node() { m_right = m_left = NULL; };
-		virtual ~Node() {};
+		Node();
+		Node(uint64_t splitValue);
+		virtual ~Node();
+
+		virtual std::string Name() const { return m_featureName; };
 
 	private:
-		std::string featureName;
-		uint64_t splitValue;
+		std::string m_featureName;
+		uint64_t m_splitValue;
 
-		Node* m_right;
 		Node* m_left;
+		Node* m_right;
 	};
 
 	typedef Node* NodePtr;
@@ -125,15 +128,15 @@ namespace IsolationForest
 		void Predict(const Sample& sample);
 
 	private:
-		Randomizer* m_randomizer;
-		std::map<std::string, Uint64Pair> m_features;
-		std::vector<NodePtr> m_trees;
-		uint32_t m_numTreesToCreate;
+		Randomizer* m_randomizer; // Performs random number generation
+		std::map<std::string, Uint64Pair> m_featureMinMax; // Lists each feature and maps it to it's corresponding min and max values
+		std::vector<NodePtr> m_trees; // The decision trees that comprise the forest
+		uint32_t m_numTreesToCreate; // The maximum number of trees to create
 		uint32_t m_subSamplingSize;
 
 		NodePtr CreateTree();
+		void DestroyTree(NodePtr tree);
 		void Destroy();
-
-		NodePtr Insert(NodePtr& root, const NodePtr& node);
+		void DestroyRandomizer();
 	};
 };
