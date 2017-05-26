@@ -210,24 +210,54 @@ namespace IsolationForest
 
 	uint64_t Forest::Predict(const Sample& sample, const NodePtr tree)
 	{
-		uint64_t score = 0;
-		const FeaturePtrList& features = sample.Features();
-		FeaturePtrList::const_iterator featureIter = features.begin();
-		while (featureIter != features.end())
+		uint64_t depth = 0;
+
+		NodePtr currentNode = tree;
+		while (currentNode)
 		{
-			++featureIter;
+			bool foundFeature = false;
+
+			const FeaturePtrList& features = sample.Features();
+			FeaturePtrList::const_iterator featureIter = features.begin();
+			while (featureIter != features.end() && !foundFeature)
+			{
+				const FeaturePtr currentFeature = (*featureIter);
+				if (currentFeature->Name().compare(currentNode->FeatureName()) == 0)
+				{
+					if (currentFeature->Value() < currentNode->SplitValue())
+					{
+						currentNode = currentNode->Left();
+					}
+					else
+					{
+						currentNode = currentNode->Right();
+					}
+					++depth;
+					foundFeature = true;
+				}
+				++featureIter;
+			}
+			if (!foundFeature)
+			{
+				return 0; // feature not found
+			}
 		}
-		return score;
+		return depth;
 	}
 
 	double Forest::Predict(const Sample& sample)
 	{
 		double score = (double)0.0;
-		NodePtrList::const_iterator treeIter = m_trees.begin();
-		while (treeIter != m_trees.end())
+		
+		if (m_trees.size() > 0)
 		{
-			Predict(sample, (*treeIter));
-			++treeIter;
+			NodePtrList::const_iterator treeIter = m_trees.begin();
+			while (treeIter != m_trees.end())
+			{
+				score += (double)Predict(sample, (*treeIter));
+				++treeIter;
+			}
+			score /= (double)m_trees.size();
 		}
 		return score;
 	}

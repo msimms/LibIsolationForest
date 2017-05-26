@@ -22,6 +22,7 @@
 
 #include "IsolationForest.h"
 #include <stdlib.h>
+#include <inttypes.h>
 
 using namespace IsolationForest;
 
@@ -34,8 +35,8 @@ int main(int argc, const char * argv[])
 	// Training samples.
 	for (size_t i = 0; i < 10; ++i)
 	{
-		FeaturePtrList features;
 		Sample sample("");
+		FeaturePtrList features;
 
 		uint32_t x = 0.3 * (rand() % 100);
 		uint32_t y = 0.3 * (rand() % 100);
@@ -47,33 +48,43 @@ int main(int argc, const char * argv[])
 		forest.AddSample(sample);
 	}
 
+	// Create the isolation forest.
 	forest.Create();
 
 	// Test samples (similar to training samples).
 	for (size_t i = 0; i < 10; ++i)
 	{
-		FeaturePtrList features;
 		Sample sample("");
+		FeaturePtrList features;
 
 		uint32_t x = 0.3 * (rand() % 100);
 		uint32_t y = 0.3 * (rand() % 100);
 
 		features.push_back(new Feature("x", x));
 		features.push_back(new Feature("y", y));
-
 		sample.AddFeatures(features);
+
+		// Run a test with the sample that doesn't contain outliers.
+		double score = forest.Predict(sample);
+		printf("Normal test sample %" PRIuPTR ": %lf\n", i, score);
 	}
 
 	// Outlier samples (different from training samples).
 	for (size_t i = 0; i < 10; ++i)
 	{
-		std::vector<FeaturePtr> outliers;
+		Sample sample("");
+		FeaturePtrList features;
 
 		uint32_t x = 25.0 + (0.5 * (rand() % 50));
 		uint32_t y = 25.0 + (0.5 * (rand() % 50));
 
-		outliers.push_back(new Feature("x", x));
-		outliers.push_back(new Feature("y", y));
+		features.push_back(new Feature("x", x));
+		features.push_back(new Feature("y", y));
+		sample.AddFeatures(features);
+
+		// Run a test with the sample that doesn't contain outliers.
+		double score = forest.Predict(sample);
+		printf("Outlier test sample %" PRIuPTR ": %lf\n", i, score);
 	}
 
 	return 0;

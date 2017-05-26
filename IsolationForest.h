@@ -85,6 +85,9 @@ namespace IsolationForest
 		virtual std::string FeatureName() const { return m_featureName; };
 		virtual uint64_t SplitValue() const { return m_splitValue; };
 
+		Node* Left() const { return m_left; };
+		Node* Right() const { return m_right; };
+
 		void SetLeftSubTree(Node* subtree);
 		void SetRightSubTree(Node* subtree);
 
