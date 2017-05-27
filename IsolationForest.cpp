@@ -208,15 +208,16 @@ namespace IsolationForest
 		}
 	}
 
-	uint64_t Forest::Predict(const Sample& sample, const NodePtr tree)
+	double Forest::Score(const Sample& sample, const NodePtr tree)
 	{
-		uint64_t depth = 0;
+		double depth = (double)0.0;
 
 		NodePtr currentNode = tree;
 		while (currentNode)
 		{
 			bool foundFeature = false;
 
+			// Find the next feature in the sample.
 			const FeaturePtrList& features = sample.Features();
 			FeaturePtrList::const_iterator featureIter = features.begin();
 			while (featureIter != features.end() && !foundFeature)
@@ -237,15 +238,20 @@ namespace IsolationForest
 				}
 				++featureIter;
 			}
+
+			// If the tree contained a feature not in the sample then take
+			// both sides of the tree and average the scores together.
 			if (!foundFeature)
 			{
-				return 0; // feature not found
+				double leftDepth = depth + Score(sample, currentNode->Left());
+				double rightDepth = depth + Score(sample, currentNode->Right());
+				return (leftDepth + rightDepth) / (double)2.0;
 			}
 		}
 		return depth;
 	}
 
-	double Forest::Predict(const Sample& sample)
+	double Forest::Score(const Sample& sample)
 	{
 		double score = (double)0.0;
 		
@@ -254,7 +260,7 @@ namespace IsolationForest
 			NodePtrList::const_iterator treeIter = m_trees.begin();
 			while (treeIter != m_trees.end())
 			{
-				score += (double)Predict(sample, (*treeIter));
+				score += (double)Score(sample, (*treeIter));
 				++treeIter;
 			}
 			score /= (double)m_trees.size();

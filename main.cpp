@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 	srand((unsigned int)time(NULL));
 
 	// Training samples.
-	for (size_t i = 0; i < 10; ++i)
+	for (size_t i = 0; i < 100; ++i)
 	{
 		Sample sample("");
 		FeaturePtrList features;
@@ -65,7 +65,7 @@ int main(int argc, const char * argv[])
 		sample.AddFeatures(features);
 
 		// Run a test with the sample that doesn't contain outliers.
-		double score = forest.Predict(sample);
+		double score = forest.Score(sample);
 		printf("Normal test sample %" PRIuPTR ": %lf\n", i, score);
 	}
 
@@ -83,7 +83,7 @@ int main(int argc, const char * argv[])
 		sample.AddFeatures(features);
 
 		// Run a test with the sample that doesn't contain outliers.
-		double score = forest.Predict(sample);
+		double score = forest.Score(sample);
 		printf("Outlier test sample %" PRIuPTR ": %lf\n", i, score);
 	}
 

@@ -57,6 +57,7 @@ namespace IsolationForest
 	class Sample
 	{
 	public:
+		Sample() {};
 		Sample(const std::string& name) { m_name = name; };
 		virtual ~Sample() {};
 
@@ -67,8 +68,6 @@ namespace IsolationForest
 	private:
 		std::string m_name;
 		FeaturePtrList m_features;
-
-		Sample() {};
 	};
 
 	typedef Sample* SamplePtr;
@@ -137,7 +136,7 @@ namespace IsolationForest
 		void SetRandomizer(Randomizer* newRandomizer);
 		void AddSample(const Sample& sample);
 		void Create();
-		double Predict(const Sample& sample);
+		double Score(const Sample& sample);
 
 	private:
 		Randomizer* m_randomizer; // Performs random number generation
@@ -147,7 +146,7 @@ namespace IsolationForest
 		uint32_t m_subSamplingSize; // The maximum depth of a tree
 
 		NodePtr CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth);
-		uint64_t Predict(const Sample& sample, const NodePtr tree);
+		double Score(const Sample& sample, const NodePtr tree);
 		void DestroyTree(NodePtr tree);
 		void Destroy();
 		void DestroyRandomizer();
