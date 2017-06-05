@@ -25,17 +25,17 @@
 namespace IsolationForest
 {
 	Node::Node() :
+		m_splitValue(0),
 		m_left(NULL),
-		m_right(NULL),
-		m_splitValue(0)
+		m_right(NULL)
 	{
 	}
 
 	Node::Node(const std::string& featureName, uint64_t splitValue) :
-		m_left(NULL),
-		m_right(NULL),
 		m_featureName(featureName),
-		m_splitValue(splitValue)
+		m_splitValue(splitValue),
+		m_left(NULL),
+		m_right(NULL)
 	{
 	}
 
