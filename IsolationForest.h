@@ -39,7 +39,10 @@ namespace IsolationForest
 		Feature(const std::string& name, uint64_t value) { m_name = name; m_value = value; };
 		virtual ~Feature() {};
 
+		virtual void Name(std::string& name) { m_name = name; };
 		virtual std::string Name() const { return m_name; };
+
+		virtual void Value(uint64_t value) { m_value = value; };
 		virtual uint64_t Value() const { return m_value; };
 
 	private:
