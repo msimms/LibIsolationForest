@@ -149,19 +149,27 @@ namespace IsolationForest
 			selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValues.size() - 1);
 		FeatureNameToValuesMap::const_iterator featureIter = featureValues.begin();
 		std::advance(featureIter, selectedFeatureIndex);
-		const std::string& featureName = (*featureIter).first;
+		const std::string& selectedFeatureName = (*featureIter).first;
+
+		// Get the value list to split on.
+		const Uint64Set& featureValueSet = (*featureIter).second;
+		if (featureValueSet.size() == 0)
+		{
+			return NULL;
+		}
 
 		// Randomly select a split value.
-		const Uint64Set& featureValueSet = (*featureIter).second;
 		size_t splitValueIndex = 0;
 		if (featureValueSet.size() > 1)
+		{
 			splitValueIndex = (size_t)m_randomizer->RandUInt64(0, featureValueSet.size() - 1);
+		}
 		Uint64Set::const_iterator splitValueIter = featureValueSet.begin();
 		std::advance(splitValueIter, splitValueIndex);
 		uint64_t splitValue = (*splitValueIter);
 
 		// Create a tree node to hold the split value.
-		NodePtr tree = new Node(featureName, splitValue);
+		NodePtr tree = new Node(selectedFeatureName, splitValue);
 		if (tree)
 		{
 			// Create two versions of the feature value set that we just used,
@@ -169,15 +177,12 @@ namespace IsolationForest
 			FeatureNameToValuesMap tempFeatureValues = featureValues;
 
 			// Create the left subtree.
-			if (splitValueIndex > 0)
-			{
-				Uint64Set leftFeatureValueSet = featureValueSet;
-				splitValueIter = leftFeatureValueSet.begin();
-				std::advance(splitValueIter, splitValueIndex);
-				leftFeatureValueSet.erase(splitValueIter, leftFeatureValueSet.end());
-				tempFeatureValues[featureName] = leftFeatureValueSet;
-				tree->SetLeftSubTree(CreateTree(tempFeatureValues, depth + 1));
-			}
+			Uint64Set leftFeatureValueSet = featureValueSet;
+			splitValueIter = leftFeatureValueSet.begin();
+			std::advance(splitValueIter, splitValueIndex);
+			leftFeatureValueSet.erase(splitValueIter, leftFeatureValueSet.end());
+			tempFeatureValues[selectedFeatureName] = leftFeatureValueSet;
+			tree->SetLeftSubTree(CreateTree(tempFeatureValues, depth + 1));
 
 			// Create the right subtree.
 			if (splitValueIndex < featureValueSet.size() - 1)
@@ -186,7 +191,7 @@ namespace IsolationForest
 				splitValueIter = rightFeatureValueSet.begin();
 				std::advance(splitValueIter, splitValueIndex + 1);
 				rightFeatureValueSet.erase(rightFeatureValueSet.begin(), splitValueIter);
-				tempFeatureValues[featureName] = rightFeatureValueSet;
+				tempFeatureValues[selectedFeatureName] = rightFeatureValueSet;
 				tree->SetRightSubTree(CreateTree(tempFeatureValues, depth + 1));
 			}
 		}
