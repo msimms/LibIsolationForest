@@ -45,10 +45,11 @@ namespace IsolationForest
 		virtual void Value(uint64_t value) { m_value = value; };
 		virtual uint64_t Value() const { return m_value; };
 
-	private:
+	protected:
 		std::string m_name;
 		uint64_t m_value;
 
+	private:
 		Feature() {};
 	};
 
