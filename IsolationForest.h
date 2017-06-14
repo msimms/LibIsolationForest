@@ -115,7 +115,7 @@ namespace IsolationForest
 	{
 	public:
 		Randomizer() : m_gen(m_rand()) {} ;
-		virtual ~Randomizer() { srand((unsigned int)time(NULL)); };
+		virtual ~Randomizer() { };
 
 		virtual uint64_t Rand() { return m_dist(m_gen); };
 		virtual uint64_t RandUInt64(uint64_t min, uint64_t max) { return min + (Rand() % (max - min + 1)); }
