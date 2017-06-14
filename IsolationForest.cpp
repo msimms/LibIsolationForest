@@ -76,14 +76,14 @@ namespace IsolationForest
 	}
 
 	Forest::Forest() :
-		m_randomizer(new Randomizer),
+		m_randomizer(new Randomizer()),
 		m_numTreesToCreate(10),
 		m_subSamplingSize(0)
 	{
 	}
 
 	Forest::Forest(uint32_t numTrees, uint32_t subSamplingSize) :
-		m_randomizer(new Randomizer),
+		m_randomizer(new Randomizer()),
 		m_numTreesToCreate(numTrees),
 		m_subSamplingSize(subSamplingSize)
 	{
