@@ -31,7 +31,7 @@ impl Feature {
         Feature { name: name.to_string(), value: value }
     }
 
-    pub fn set_name(&self, name: String) {
+    pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
 
@@ -39,7 +39,7 @@ impl Feature {
         self.name
     }
 
-    pub fn set_value(&self, value: u64) {
+    pub fn set_value(&mut self, value: u64) {
         self.value = value;
     }
 
@@ -59,14 +59,19 @@ pub struct Sample {
 
 impl Sample {
     pub fn new (name: &str) -> Sample {
-        Sample { name: name.to_string() }
+        Sample { name: name.to_string(), features: Sample::create_feature_list() }
     }
 
-    pub fn add_features(&self, features: FeatureList) {
+    fn create_feature_list() -> FeatureList {
+        let mut v: FeatureList = vec![];
+        v
+    }
+
+    pub fn add_features(&mut self, features: &mut FeatureList) {
         self.features.append(features);
     }
 
-    pub fn add_feature(&self, feature: Feature) {
+    pub fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
     }
 
@@ -86,20 +91,19 @@ struct Node {
 
 impl Node {
     pub fn new (feature_name: &str) -> Node {
-        Node { feature_name: feature_name.to_string() }
+        Node { feature_name: feature_name.to_string(), left: None, right: None }
     }
 
-	fn set_left_subtree(&self, subtree: Node)
-	{
+	fn set_left_subtree(&mut self, subtree: NodeLink) {
 		self.left = subtree;
 	}
 
-	fn set_right_subtree(&self, subtree: Node)
-	{
+	fn set_right_subtree(&mut self, subtree: NodeLink) {
 		self.right = subtree;
 	}
 }
 
+pub type NodeLink = Option<Box<Node>>;
 pub type NodeList = Vec<Node>;
 
 /// Isolation Forest implementation.
@@ -112,15 +116,45 @@ pub struct Forest {
 
 impl Forest {
     pub fn new (numTreesToCreate: u32, subSamplingSize: u32) -> Forest {
-        Forest { numTreesToCreate: numTreesToCreate, subSamplingSize: subSamplingSize }
+        Forest { numTreesToCreate: numTreesToCreate, subSamplingSize: subSamplingSize, trees: Forest::create_trees() }
+    }
+
+    fn create_trees() -> NodeList {
+        let mut v: NodeList = vec![];
+        v
     }
 
     pub fn add_sample(&self, sample: Sample) {
+		// Add each of this sample's features to the list of known features
+		// with the corresponding set of unique values.
+		let mut features = sample.features();
+        for feature in &features {
+            let mut found_feature = false;
+        }
     }
 
     pub fn create(&self) {
     }
 
+    fn score_tree(&self, sample: Sample, tree: Node) -> f64 {
+        let mut score = 0.0;
+        let mut current_node = tree;
+        while !current_node.is_none() {
+            let mut found_feature = false;
+            let features = sample.features();
+        }
+        score
+    }
+
     pub fn score(&self, sample: Sample) -> f64 {
+        let mut score = 0.0;
+
+        if self.trees.len() > 0 {
+            for tree in self.trees {
+                score += self.score_tree(sample, tree);
+            }
+            score /= self.trees.len() as f64;
+        }
+        score
     }
 }

@@ -20,10 +20,10 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
-extern crate rand;
 mod IsolationForest;
 
-use std::rand::{task_rng, Rng};
+extern crate rand;
+use rand::task_rng;
 
 fn main()
 {
@@ -41,7 +41,7 @@ fn main()
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
 
-		sample.add_features(features);
+		sample.add_features(&mut features);
 		forest.add_sample(sample);
 	}
 
@@ -59,7 +59,7 @@ fn main()
 
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
-		sample.add_features(features);
+		sample.add_features(&mut features);
 
 		// Run a test with the sample that doesn't contain outliers.
 		let score = forest.score(sample);
@@ -77,7 +77,7 @@ fn main()
 
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
-		sample.add_features(features);
+		sample.add_features(&mut features);
 
 		// Run a test with the sample that doesn't contain outliers.
 		let score = forest.score(sample);
