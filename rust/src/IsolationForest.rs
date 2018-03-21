@@ -94,6 +94,10 @@ impl Node {
         Node { feature_name: feature_name.to_string(), left: None, right: None }
     }
 
+    fn get_feature_name(&self) -> String {
+        self.feature_name
+    }
+
 	fn set_left_subtree(&mut self, subtree: NodeLink) {
 		self.left = subtree;
 	}
@@ -137,13 +141,17 @@ impl Forest {
     }
 
     fn score_tree(&self, sample: Sample, tree: Node) -> f64 {
-        let mut score = 0.0;
+        let mut depth = 0.0;
         let mut current_node = tree;
         while !current_node.is_none() {
             let mut found_feature = false;
+            let feature_name = current_node.get_feature_name();
             let features = sample.features();
+            for feature in features {
+                
+            }
         }
-        score
+        depth
     }
 
     pub fn score(&self, sample: Sample) -> f64 {

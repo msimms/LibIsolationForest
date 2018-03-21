@@ -23,11 +23,13 @@
 mod IsolationForest;
 
 extern crate rand;
-use rand::task_rng;
+use rand::distributions::IndependentSample;
 
 fn main()
 {
 	let mut forest = IsolationForest::Forest::new(10, 10);
+    let mut rng = rand::thread_rng();
+    let range = rand::distributions::Range::new(0.0, 100.0);
 
 	// Training samples.
 	for i in 0..100
@@ -35,8 +37,10 @@ fn main()
 		let mut sample = IsolationForest::Sample::new("");
 		let mut features = IsolationForest::FeatureList::new();
 
-		let x = 0.3 * (task_rng().gen_range(0, 100));
-		let y = 0.3 * (task_rng().gen_range(0, 100));
+		let x = 0.3 * (range.ind_sample(&mut rng));
+		let y = 0.3 * (range.ind_sample(&mut rng));
+		let x = x as u64;
+		let y = y as u64;
 
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
@@ -54,8 +58,10 @@ fn main()
 		let mut sample = IsolationForest::Sample::new("");
 		let mut features = IsolationForest::FeatureList::new();
 
-		let x = 0.3 * (task_rng().gen_range(0, 100));
-		let y = 0.3 * (task_rng().gen_range(0, 100));
+		let x = 0.3 * (range.ind_sample(&mut rng));
+		let y = 0.3 * (range.ind_sample(&mut rng));
+		let x = x as u64;
+		let y = y as u64;
 
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
@@ -72,8 +78,10 @@ fn main()
 		let mut sample = IsolationForest::Sample::new("");
 		let mut features = IsolationForest::FeatureList::new();
 
-		let x = 25.0 + (0.5 * (task_rng().gen_range(0, 50)));
-		let y = 25.0 + (0.5 * (task_rng().gen_range(0, 50)));
+		let x = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
+		let y = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
+		let x = x as u64;
+		let y = y as u64;
 
 		features.push(IsolationForest::Feature::new("x", x));
 		features.push(IsolationForest::Feature::new("y", y));
