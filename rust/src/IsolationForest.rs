@@ -20,6 +20,9 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
+use std::collections::HashSet;
+use std::collections::HashMap;
+
 /// Each feature has a name and value.
 pub struct Feature {
     name: String,
@@ -49,6 +52,8 @@ impl Feature {
 }
 
 pub type FeatureList = Vec<Feature>;
+pub type Uint64Set = HashSet<u64>;
+pub type FeatureNameToValuesMap<'a> = HashMap<&'a str, Uint64Set>;
 
 /// This class represents a sample.
 /// Each sample has a name and list of features.
@@ -107,25 +112,30 @@ impl Node {
 	}
 }
 
-pub type NodeLink = Option<Box<Node>>;
+type NodeLink = Option<Box<Node>>;
 pub type NodeList = Vec<Node>;
 
 /// Isolation Forest implementation.
-pub struct Forest {
-    //featureValues: FeatureNameToValueMap, // Lists each feature and maps it to all unique values in the training set
+pub struct Forest<'a> {
+    featureValues: FeatureNameToValuesMap<'a>, // Lists each feature and maps it to all unique values in the training set
     trees: NodeList, // The decision trees that comprise the forest
     numTreesToCreate: u32, // The maximum number of trees to create
     subSamplingSize: u32, // The maximum depth of a tree
 }
 
-impl Forest {
-    pub fn new (numTreesToCreate: u32, subSamplingSize: u32) -> Forest {
-        Forest { numTreesToCreate: numTreesToCreate, subSamplingSize: subSamplingSize, trees: Forest::create_trees() }
+impl<'a> Forest<'a> {
+    pub fn new (numTreesToCreate: u32, subSamplingSize: u32) -> Forest<'a> {
+        Forest { numTreesToCreate: numTreesToCreate, subSamplingSize: subSamplingSize, trees: Forest::create_trees(), featureValues: Forest::create_feature_name_to_values_map() }
     }
 
     fn create_trees() -> NodeList {
         let mut v: NodeList = vec![];
         v
+    }
+
+    fn create_feature_name_to_values_map() -> FeatureNameToValuesMap<'a> {
+        let mut m = HashMap::new();
+        m
     }
 
     pub fn add_sample(&self, sample: Sample) {
@@ -138,12 +148,16 @@ impl Forest {
     }
 
     pub fn create(&self) {
+    	for i in 0..self.numTreesToCreate {
+            let tree = Forest::create_trees();
+        }
     }
 
     fn score_tree(&self, sample: Sample, tree: Node) -> f64 {
         let mut depth = 0.0;
         let mut current_node = tree;
-        while !current_node.is_none() {
+        let mut done = false;
+        while !done {
             let mut found_feature = false;
             let feature_name = current_node.get_feature_name();
             let features = sample.features();
