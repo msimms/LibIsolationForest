@@ -107,9 +107,17 @@ impl Node {
 		self.left = subtree;
 	}
 
+    fn get_left_subtree(&self) -> NodeLink {
+        self.left
+    }
+
 	fn set_right_subtree(&mut self, subtree: NodeLink) {
 		self.right = subtree;
 	}
+
+    fn get_right_subtree(&self) -> NodeLink {
+        self.right
+    }
 }
 
 type NodeLink = Option<Box<Node>>;
@@ -148,7 +156,7 @@ impl<'a> Forest<'a> {
     }
 
     pub fn create(&self) {
-    	for i in 0..self.numTreesToCreate {
+    	for _i in 0..self.numTreesToCreate {
             let tree = Forest::create_trees();
         }
     }
@@ -159,10 +167,18 @@ impl<'a> Forest<'a> {
         let mut done = false;
         while !done {
             let mut found_feature = false;
-            let feature_name = current_node.get_feature_name();
+            let node_feature_name = current_node.get_feature_name();
             let features = sample.features();
             for feature in features {
-                
+                let feature_name = feature.get_name();
+                if feature_name == node_feature_name {
+					if feature.get_value() < current_node.split_value() {
+						current_node = current_node.get_left_subtree();
+                    } else {
+						current_node = current_node.get_right_subtree();
+                    }
+                    found_feature = false;
+                }
             }
         }
         depth
