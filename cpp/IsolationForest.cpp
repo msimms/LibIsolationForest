@@ -144,9 +144,7 @@ namespace IsolationForest
 		}
 
 		// Randomly select a feature.
-		size_t selectedFeatureIndex = 0;
-		if (featureValues.size() > 1)
-			selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValues.size() - 1);
+		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValues.size() - 1);
 		FeatureNameToValuesMap::const_iterator featureIter = featureValues.begin();
 		std::advance(featureIter, selectedFeatureIndex);
 		const std::string& selectedFeatureName = (*featureIter).first;
@@ -217,13 +215,14 @@ namespace IsolationForest
 	{
 		double depth = (double)0.0;
 
+		const FeaturePtrList& features = sample.Features();
+
 		NodePtr currentNode = tree;
 		while (currentNode)
 		{
 			bool foundFeature = false;
 
 			// Find the next feature in the sample.
-			const FeaturePtrList& features = sample.Features();
 			FeaturePtrList::const_iterator featureIter = features.begin();
 			while (featureIter != features.end() && !foundFeature)
 			{
@@ -300,4 +299,4 @@ namespace IsolationForest
 			m_randomizer = NULL;
 		}
 	}
-};
+}

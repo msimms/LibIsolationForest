@@ -52,6 +52,8 @@ int main(int argc, const char * argv[])
 	forest.Create();
 
 	// Test samples (similar to training samples).
+	printf("Test samples that are similar to the training set.\n");
+	printf("--------------------------------------------------\n");
 	for (size_t i = 0; i < 10; ++i)
 	{
 		Sample sample("");
@@ -68,8 +70,11 @@ int main(int argc, const char * argv[])
 		double score = forest.Score(sample);
 		printf("Normal test sample %" PRIuPTR ": %lf\n", i, score);
 	}
+	printf("\n");
 
 	// Outlier samples (different from training samples).
+	printf("Test samples that are different from the training set.\n");
+	printf("------------------------------------------------------\n");
 	for (size_t i = 0; i < 10; ++i)
 	{
 		Sample sample("");
@@ -82,10 +87,11 @@ int main(int argc, const char * argv[])
 		features.push_back(new Feature("y", y));
 		sample.AddFeatures(features);
 
-		// Run a test with the sample that doesn't contain outliers.
+		// Run a test with the sample that contains outliers.
 		double score = forest.Score(sample);
 		printf("Outlier test sample %" PRIuPTR ": %lf\n", i, score);
 	}
+	printf("\n");
 
 	return 0;
 }
