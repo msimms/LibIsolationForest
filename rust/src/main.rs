@@ -53,6 +53,8 @@ fn main()
 	forest.create();
 
 	// Test samples (similar to training samples).
+	println!("Test samples that are similar to the training set.\n");
+	println!("--------------------------------------------------\n");
 	for i in 0..10
 	{
 		let mut sample = IsolationForest::Sample::new("");
@@ -73,6 +75,8 @@ fn main()
 	}
 
 	// Outlier samples (different from training samples).
+	println!("Test samples that are different from the training set.\n");
+	println!("------------------------------------------------------\n");
 	for i in 0..10
 	{
 		let mut sample = IsolationForest::Sample::new("");
@@ -87,7 +91,7 @@ fn main()
 		features.push(IsolationForest::Feature::new("y", y));
 		sample.add_features(&mut features);
 
-		// Run a test with the sample that doesn't contain outliers.
+		// Run a test with the sample that contains outliers.
 		let score = forest.score(sample);
 		println!("Outlier test sample {}: {}\n", i, score);
 	}
