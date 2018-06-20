@@ -20,30 +20,30 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
-mod IsolationForest;
+mod isolation_forest;
 
 extern crate rand;
 use rand::distributions::IndependentSample;
 
 fn main()
 {
-	let mut forest = IsolationForest::Forest::new(10, 10);
+	let mut forest = isolation_forest::Forest::new(10, 10);
     let mut rng = rand::thread_rng();
     let range = rand::distributions::Range::new(0.0, 100.0);
 
 	// Training samples.
 	for i in 0..100
 	{
-		let mut sample = IsolationForest::Sample::new("");
-		let mut features = IsolationForest::FeatureList::new();
+		let mut sample = isolation_forest::Sample::new("");
+		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 0.3 * (range.ind_sample(&mut rng));
 		let y = 0.3 * (range.ind_sample(&mut rng));
 		let x = x as u64;
 		let y = y as u64;
 
-		features.push(IsolationForest::Feature::new("x", x));
-		features.push(IsolationForest::Feature::new("y", y));
+		features.push(isolation_forest::Feature::new("x", x));
+		features.push(isolation_forest::Feature::new("y", y));
 
 		sample.add_features(&mut features);
 		forest.add_sample(sample);
@@ -57,16 +57,16 @@ fn main()
 	println!("--------------------------------------------------\n");
 	for i in 0..10
 	{
-		let mut sample = IsolationForest::Sample::new("");
-		let mut features = IsolationForest::FeatureList::new();
+		let mut sample = isolation_forest::Sample::new("");
+		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 0.3 * (range.ind_sample(&mut rng));
 		let y = 0.3 * (range.ind_sample(&mut rng));
 		let x = x as u64;
 		let y = y as u64;
 
-		features.push(IsolationForest::Feature::new("x", x));
-		features.push(IsolationForest::Feature::new("y", y));
+		features.push(isolation_forest::Feature::new("x", x));
+		features.push(isolation_forest::Feature::new("y", y));
 		sample.add_features(&mut features);
 
 		// Run a test with the sample that doesn't contain outliers.
@@ -79,16 +79,16 @@ fn main()
 	println!("------------------------------------------------------\n");
 	for i in 0..10
 	{
-		let mut sample = IsolationForest::Sample::new("");
-		let mut features = IsolationForest::FeatureList::new();
+		let mut sample = isolation_forest::Sample::new("");
+		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
 		let y = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
 		let x = x as u64;
 		let y = y as u64;
 
-		features.push(IsolationForest::Feature::new("x", x));
-		features.push(IsolationForest::Feature::new("y", y));
+		features.push(isolation_forest::Feature::new("x", x));
+		features.push(isolation_forest::Feature::new("y", y));
 		sample.add_features(&mut features);
 
 		// Run a test with the sample that contains outliers.
