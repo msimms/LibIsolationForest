@@ -199,17 +199,18 @@ impl<'a> Forest<'a> {
 
         while !done {
             let mut found_feature = false;
-            let node_feature_name = current_node.get_feature_name();
+            let current_node_deref = current_node.deref();
+            let node_feature_name = current_node_deref.get_feature_name();
             let features = sample.features();
 
             for feature in features {
                 let feature_name = feature.get_name();
 
                 if feature_name == node_feature_name {
-					if feature.get_value() < current_node.split_value() {
-						current_node = current_node.get_left_subtree();
+					if feature.get_value() < current_node_deref.split_value() {
+						current_node = current_node_deref.get_left_subtree();
                     } else {
-						current_node = current_node.get_right_subtree();
+						current_node = current_node_deref.get_right_subtree();
                     }
                     found_feature = false;
                 }
