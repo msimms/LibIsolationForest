@@ -23,7 +23,8 @@
 import random
 
 class Node(object):
-    
+    """Tree node, used internally."""
+
     def __init__(self, feature_name, split_value):
         self.feature_name = feature_name
         self.split_value = split_value
@@ -38,20 +39,19 @@ class Node(object):
     def set_left_subtree(self, subtree):
         self.destroy_left_subtree()
         self.left = subtree
-        
+
     def set_right_subtree(self, subtree):
         self.destroy_left_subtree()
         self.left = subtree
-        
+
     def destroy_left_subtree(self):
-        if self.left is not None:
-            self.left = None
+        self.left = None
 
     def destroy_right_subtree(self):
-        if self.right is not None:
-            self.right = None
+        self.right = None
 
 class Sample(object):
+    """This class represents a sample. Each sample has a name and list of features."""
 
     def __init__(self, name):
         self.name = name
@@ -69,7 +69,8 @@ class Sample(object):
         self.features.append(feature)
 
 class Forest(object):
-
+    """Isolation Forest implementation."""
+ 
     def __init__(self, num_trees, sub_sampling_size):
         self.num_trees = num_trees
         self.sub_sampling_size = sub_sampling_size
@@ -83,6 +84,8 @@ class Forest(object):
     def add_sample(self, sample):
         """Adds each of the sample's features to the list of known features 
            with the corresponding set of unique values."""
+
+        # We don't store the sample directly, just the features.
         for feature in sample.features:
             feature_name = feature.keys()[0]
             feature_value = feature.values()[0]
@@ -95,7 +98,8 @@ class Forest(object):
                 self.feature_values[feature_name] = feature_value_set 
 
     def create_tree(self, feature_values, depth):
-        """Creates and returns a single tree of the specified depth."""
+        """Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion."""
+
         # Sanity check
         if len(feature_values) <= 1:
             return None
@@ -112,7 +116,9 @@ class Forest(object):
         split_value_index = 0
         feature_value_set = feature_values[selected_feature_name]
         feature_value_set_len = len(feature_value_set)
-        if feature_value_set_len > 1:
+        if feature_value_set_len == 0:
+            return None
+        elif feature_value_set_len > 1:
             split_value_index = random.randint(0, feature_value_set_len - 1)
         split_value = feature_value_set[split_value_index]
 
@@ -121,18 +127,25 @@ class Forest(object):
 
         # Create two versions of the feature value set that we just used,
         # one for the left side of the tree and one for the right.
+        temp_feature_values = feature_values
 
         # Create the left subtree.
-        tree.set_left_subtree(feature_value_set[:split_value_index])
+        left_features = feature_value_set[:split_value_index]
+        temp_feature_values[selected_feature_name] = left_features
+        left_subtree = self.create_tree(temp_feature_values, depth + 1)
+        tree.set_left_subtree(left_subtree)
 
         # Create the right subtree.
-        tree.set_right_subtree(feature_value_set[split_value_index:])
+        right_features = feature_value_set[split_value_index:]
+        temp_feature_values[selected_feature_name] = right_features
+        right_subtree = self.create_tree(temp_feature_values, depth + 1)
+        tree.set_right_subtree(right_subtree)
 
         return tree
 
     def create(self):
         """Creates a forest containing the number of trees specified to the constructor."""
-        for i in range(0,self.num_trees):
+        for _ in range(0,self.num_trees):
             tree = self.create_tree(self.feature_values, 0)
             self.trees.append(tree)
 
@@ -141,7 +154,7 @@ class Forest(object):
         depth = 0.0
         current_node = tree
         while current_node is not None:
-            found_feature = False 
+            found_feature = False
 
             # Find the next feature in the sample.
             for current_feature in sample.features:
@@ -154,6 +167,7 @@ class Forest(object):
                         current_node = current_node.right
                     depth = depth + 1
                     found_feature = True
+                    break
 
             # If the tree contained a feature not in the sample then take
             # both sides of the tree and average the scores together.

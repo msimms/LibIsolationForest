@@ -59,6 +59,6 @@ for i in range(0,10):
 
     # Run a test with the sample that doesn't contain outliers.
     score = forest.score(sample)
-    print "Normal test sample " + i + ": " + score + "\n"
+    print "Normal test sample " + str(i) + ": " + str(score)
 
 print "\n"
