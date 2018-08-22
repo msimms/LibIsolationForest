@@ -80,6 +80,7 @@ def main():
         avg_normal_score = avg_normal_score + score
         print "Normal test sample " + str(i) + ": " + str(score)
     avg_normal_score = avg_normal_score / num_tests
+    print "Average of normal test samples: "+ str(avg_normal_score)
 
     # Test samples (similar to training samples).
     print "Test samples that are different to the training set."
@@ -91,12 +92,12 @@ def main():
         sample = IsolationForest.Sample("outlier sample")
         features = []
 
-        x = random.randint(25,50)
-        y = random.randint(25,50)
-        sample.add_features(features)
+        x = random.randint(20,45)
+        y = random.randint(20,45)
 
         features.append({"x": x})
         features.append({"y": y})
+        sample.add_features(features)
 
         # So we can graph this later.
         outlier_x.append(x)
@@ -107,6 +108,7 @@ def main():
         avg_outlier_score = avg_outlier_score + score
         print "Outlier test sample " + str(i) + ": " + str(score)
     avg_outlier_score = avg_outlier_score / num_tests
+    print "Average of outlier test samples: "+ str(avg_outlier_score)
 
     # Create a trace.
     training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
