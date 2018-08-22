@@ -40,3 +40,5 @@ tempmod/*
 # Log files
 *.log
 
+# Test output
+python/isolationforest_test.html
