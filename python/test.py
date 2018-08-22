@@ -82,9 +82,9 @@ def main():
     avg_normal_score = avg_normal_score / num_tests
     print "Average of normal test samples: "+ str(avg_normal_score)
 
-    # Test samples (similar to training samples).
-    print "Test samples that are different to the training set."
-    print "----------------------------------------------------"
+    # Test samples (different from training samples).
+    print "Test samples that are different from the training set."
+    print "------------------------------------------------------"
     outlier_x = []
     outlier_y = []
     avg_outlier_score = 0.0
