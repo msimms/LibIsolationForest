@@ -22,7 +22,7 @@
 
 import random
 import IsolationForest
-import plotly.plotly as py
+import plotly
 import plotly.graph_objs as go
 
 def main():
@@ -39,8 +39,8 @@ def main():
         sample = IsolationForest.Sample("training")
         features = []
 
-        x = 0.3 * (random.randint(0,100))
-        y = 0.3 * (random.randint(0,100))
+        x = random.randint(0,25)
+        y = random.randint(0,25)
 
         features.append({"x": x})
         features.append({"y": y})
@@ -64,8 +64,8 @@ def main():
         sample = IsolationForest.Sample("normal sample")
         features = []
 
-        x = 0.3 * (random.randint(0,100))
-        y = 0.3 * (random.randint(0,100))
+        x = random.randint(0,25)
+        y = random.randint(0,25)
 
         features.append({"x": x})
         features.append({"y": y})
@@ -91,8 +91,8 @@ def main():
         sample = IsolationForest.Sample("outlier sample")
         features = []
 
-        x = 0.3 * (random.randint(0,100))
-        y = 0.3 * (random.randint(0,100))
+        x = random.randint(25,50)
+        y = random.randint(25,50)
         sample.add_features(features)
 
         features.append({"x": x})
@@ -109,11 +109,11 @@ def main():
     avg_outlier_score = avg_outlier_score / num_tests
 
     # Create a trace.
-    training_trace = go.Scatter(x = training_x, y = training_y, mode = 'markers')
-    normal_trace = go.Scatter(x = normal_x, y = normal_y, mode = 'markers')
-    outlier_trace = go.Scatter(x = outlier_x, y = outlier_y, mode = 'markers')
+    training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
+    normal_trace = go.Scatter(x=normal_x, y=normal_y, mode='markers', name='normal')
+    outlier_trace = go.Scatter(x=outlier_x, y=outlier_y, mode='markers', name='outlier')
     data = [training_trace, normal_trace, outlier_trace]
-    py.iplot(data, filename='basic-scatter')
+    plotly.offline.plot(data, filename='isolationforest_test.html')
 
 if __name__ == "__main__":
     main()
