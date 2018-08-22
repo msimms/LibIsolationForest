@@ -32,6 +32,7 @@
 
 namespace IsolationForest
 {
+	/// This class represents a feature. Each sample has one or more features.
 	/// Each feature has a name and value.
 	class Feature
 	{
@@ -151,7 +152,6 @@ namespace IsolationForest
 
 		NodePtr CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth);
 		double Score(const Sample& sample, const NodePtr tree);
-		void DestroyTree(NodePtr tree);
 		void Destroy();
 		void DestroyRandomizer();
 	};

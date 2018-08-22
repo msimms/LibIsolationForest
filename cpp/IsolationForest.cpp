@@ -101,10 +101,11 @@ namespace IsolationForest
 		m_randomizer = newRandomizer;
 	}
 
+	/// Adds each of the sample's features to the list of known features
+	/// with the corresponding set of unique values.
 	void Forest::AddSample(const Sample& sample)
 	{
-		// Add each of this sample's features to the list of known features
-		// with the corresponding set of unique values.
+        // We don't store the sample directly, just the features.
 		const FeaturePtrList& features = sample.Features();
 		FeaturePtrList::const_iterator featureIter = features.begin();
 		while (featureIter != features.end())
@@ -113,6 +114,7 @@ namespace IsolationForest
 			const std::string& featureName = feature->Name();
 			uint64_t featureValue = feature->Value();
 
+			// Either create or update the feature values count.
 			if (m_featureValues.count(featureName) == 0)
 			{
 				Uint64Set featureValueSet;
@@ -129,6 +131,8 @@ namespace IsolationForest
 		}
 	}
 
+	/// Creates and returns a single tree. As this is a recursive function,
+	/// depth indicates the current depth of the recursion.
 	NodePtr Forest::CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth)
 	{
 		// Sanity check.
@@ -197,6 +201,7 @@ namespace IsolationForest
 		return tree;
 	}
 
+	/// Creates a forest containing the number of trees specified to the constructor.
 	void Forest::Create()
 	{
 		m_trees.reserve(m_numTreesToCreate);
@@ -211,6 +216,7 @@ namespace IsolationForest
 		}
 	}
 
+    /// Scores the sample against the specified tree.
 	double Forest::Score(const Sample& sample, const NodePtr tree)
 	{
 		double depth = (double)0.0;
@@ -255,6 +261,7 @@ namespace IsolationForest
 		return depth;
 	}
 
+	/// Scores the sample against the entire forest of trees.
 	double Forest::Score(const Sample& sample)
 	{
 		double score = (double)0.0;
@@ -272,25 +279,23 @@ namespace IsolationForest
 		return score;
 	}
 
-	void Forest::DestroyTree(NodePtr tree)
-	{
-		if (tree)
-		{
-			delete tree;
-		}
-	}
-
+	/// Destroys the entire forest of trees.
 	void Forest::Destroy()
 	{
 		std::vector<NodePtr>::iterator iter = m_trees.begin();
 		while (iter != m_trees.end())
 		{
-			DestroyTree((*iter));
+			NodePtr tree = (*iter);
+			if (tree)
+			{
+				delete tree;
+			}
 			++iter;
 		}
 		m_trees.clear();
 	}
 
+	/// Frees the custom randomizer object (if any).
 	void Forest::DestroyRandomizer()
 	{
 		if (m_randomizer)
