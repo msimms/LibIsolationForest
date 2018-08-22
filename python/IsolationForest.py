@@ -31,24 +31,11 @@ class Node(object):
         self.left = None
         self.right = None
 
-    def terminate(self):
-        """Destructor"""
-        self.destroy_left_subtree()
-        self.destroy_right_subtree()
-
     def set_left_subtree(self, subtree):
-        self.destroy_left_subtree()
         self.left = subtree
 
     def set_right_subtree(self, subtree):
-        self.destroy_left_subtree()
         self.left = subtree
-
-    def destroy_left_subtree(self):
-        self.left = None
-
-    def destroy_right_subtree(self):
-        self.right = None
 
 class Sample(object):
     """This class represents a sample. Each sample has a name and list of features."""
@@ -56,10 +43,6 @@ class Sample(object):
     def __init__(self, name):
         self.name = name
         self.features = []
-
-    def terminate(self):
-        """Destructor"""
-        pass
 
     def add_features(self, features):
         for feature in features:
@@ -76,10 +59,6 @@ class Forest(object):
         self.sub_sampling_size = sub_sampling_size
         self.feature_values = {}
         self.trees = []
-
-    def terminate(self):
-        """Destructor"""
-        pass
 
     def add_sample(self, sample):
         """Adds each of the sample's features to the list of known features 
