@@ -88,13 +88,13 @@ impl Sample {
 pub type SampleList = Vec<Sample>;
 
 /// Tree node, used internally.
-struct Node<'a> {
+struct Node {
     feature_name: String,
-    left: NodeLink<'a>,
-    right: NodeLink<'a>,
+    left: NodeLink,
+    right: NodeLink,
 }
 
-impl<'a> Node<'a> {
+impl Node {
     pub fn new (feature_name: &str) -> Node {
         Node { feature_name: feature_name.to_string(), left: None, right: None }
     }
@@ -103,30 +103,30 @@ impl<'a> Node<'a> {
         self.feature_name
     }
 
-	fn set_left_subtree(&mut self, subtree: NodeLink<'a>) {
+	fn set_left_subtree(&mut self, subtree: NodeLink) {
 		self.left = subtree;
 	}
 
-    fn get_left_subtree(&self) -> NodeLink<'a> {
+    fn get_left_subtree(&self) -> NodeLink {
         self.left
     }
 
-	fn set_right_subtree(&mut self, subtree: NodeLink<'a>) {
+	fn set_right_subtree(&mut self, subtree: NodeLink) {
 		self.right = subtree;
 	}
 
-    fn get_right_subtree(&self) -> NodeLink<'a> {
+    fn get_right_subtree(&self) -> NodeLink {
         self.right
     }
 }
 
-pub type NodeLink<'a> = Option<Box<Node<'a>>>;
-pub type NodeList<'a> = Vec<Node<'a>>;
+pub type NodeLink = Option<Box<Node>>;
+pub type NodeList = Vec<Box<Node>>;
 
 /// Isolation Forest implementation.
 pub struct Forest<'a> {
     feature_values: FeatureNameToValuesMap<'a>, // Lists each feature and maps it to all unique values in the training set
-    trees: NodeList<'a>, // The decision trees that comprise the forest
+    trees: NodeList, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
 }
@@ -136,7 +136,7 @@ impl<'a> Forest<'a> {
         Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map() }
     }
 
-    fn initialize_trees() -> NodeList<'a> {
+    fn initialize_trees() -> NodeList {
         let mut v: NodeList = vec![];
         v
     }
@@ -155,23 +155,21 @@ impl<'a> Forest<'a> {
         }
     }
 
-    pub fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeList {
-        let mut tree = NodeList::new();
-
+    pub fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
 		// Sanity check.
 		if feature_values.len() <= 1 {
-			return tree;
+			return None;
 		}
 
 		// If we've exceeded the maximum desired depth, then stop.
 		if (self.sub_sampling_size > 0) && (depth >= self.sub_sampling_size) {
-			return tree;
+			return None;
 		}
 
 		// Randomly select a feature.
 		let mut selected_feature_index = 0;
 		if feature_values.len() > 1 {
-			return tree;
+			return None;
 		}
 
 		// Get the value list to split on.
@@ -180,6 +178,7 @@ impl<'a> Forest<'a> {
 		let mut split_value_index = 0;
 
 		// Create a tree node to hold the split value.
+        let mut tree = Some(Box::new(Node::new("")));
 
         tree
     }
@@ -199,7 +198,7 @@ impl<'a> Forest<'a> {
 
         while !done {
             let mut found_feature = false;
-            let current_node_deref = current_node.deref();
+            let current_node_deref = current_node;
             let node_feature_name = current_node_deref.get_feature_name();
             let features = sample.features();
 
@@ -224,7 +223,7 @@ impl<'a> Forest<'a> {
 
         if self.trees.len() > 0 {
             for tree in self.trees {
-                score += self.score_tree(sample, tree);
+                score += self.score_tree(sample, Some(tree));
             }
             score /= self.trees.len() as f64;
         }
