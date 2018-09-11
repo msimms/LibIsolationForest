@@ -88,13 +88,13 @@ impl Sample {
 pub type SampleList = Vec<Sample>;
 
 /// Tree node, used internally.
-struct Node {
+struct Node<'a> {
     feature_name: String,
-    left: NodeLink,
-    right: NodeLink,
+    left: NodeLink<'a>,
+    right: NodeLink<'a>,
 }
 
-impl Node {
+impl<'a> Node<'a> {
     pub fn new (feature_name: &str) -> Node {
         Node { feature_name: feature_name.to_string(), left: None, right: None }
     }
@@ -103,30 +103,30 @@ impl Node {
         self.feature_name
     }
 
-	fn set_left_subtree(&mut self, subtree: NodeLink) {
+	fn set_left_subtree(&mut self, subtree: NodeLink<'a>) {
 		self.left = subtree;
 	}
 
-    fn get_left_subtree(&self) -> NodeLink {
+    fn get_left_subtree(&self) -> NodeLink<'a> {
         self.left
     }
 
-	fn set_right_subtree(&mut self, subtree: NodeLink) {
+	fn set_right_subtree(&mut self, subtree: NodeLink<'a>) {
 		self.right = subtree;
 	}
 
-    fn get_right_subtree(&self) -> NodeLink {
+    fn get_right_subtree(&self) -> NodeLink<'a> {
         self.right
     }
 }
 
-type NodeLink = Option<Box<Node>>;
-pub type NodeList = Vec<Node>;
+pub type NodeLink<'a> = Option<Box<Node<'a>>>;
+pub type NodeList<'a> = Vec<Node<'a>>;
 
 /// Isolation Forest implementation.
 pub struct Forest<'a> {
     feature_values: FeatureNameToValuesMap<'a>, // Lists each feature and maps it to all unique values in the training set
-    trees: NodeList, // The decision trees that comprise the forest
+    trees: NodeList<'a>, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
 }
@@ -136,7 +136,7 @@ impl<'a> Forest<'a> {
         Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map() }
     }
 
-    fn initialize_trees() -> NodeList {
+    fn initialize_trees() -> NodeList<'a> {
         let mut v: NodeList = vec![];
         v
     }
