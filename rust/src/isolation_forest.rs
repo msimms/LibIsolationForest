@@ -186,7 +186,7 @@ impl<'a> Forest<'a> {
     pub fn create(&self) {
     	for _i in 0..self.num_trees_to_create {
             let tree = self.create_tree(self.feature_values, 0);
-            if tree.len() > 0 {
+            if !tree.is_none() {
             }
         }
     }
