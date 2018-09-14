@@ -103,16 +103,16 @@ impl Node {
         self.feature_name
     }
 
-	fn set_left_subtree(&mut self, subtree: NodeLink) {
-		self.left = subtree;
+	fn set_left_subtree(&mut self, subtree: NodeBox) {
+		self.left = Some(subtree);
 	}
 
     fn get_left_subtree(&self) -> NodeLink {
         self.left
     }
 
-	fn set_right_subtree(&mut self, subtree: NodeLink) {
-		self.right = subtree;
+	fn set_right_subtree(&mut self, subtree: NodeBox) {
+		self.right = Some(subtree);
 	}
 
     fn get_right_subtree(&self) -> NodeLink {
@@ -120,6 +120,7 @@ impl Node {
     }
 }
 
+pub type NodeBox = Box<Node>;
 pub type NodeLink = Option<Box<Node>>;
 pub type NodeList = Vec<Box<Node>>;
 
@@ -191,28 +192,65 @@ impl<'a> Forest<'a> {
         }
     }
 
-    fn score_tree(&self, sample: Sample, tree: NodeLink) -> f64 {
+    fn score_tree(&self, sample: Sample, tree: NodeBox) -> f64 {
         let mut depth = 0.0;
-        let mut current_node = tree;
+        let mut current_node = &*tree;
         let mut done = false;
 
         while !done {
             let mut found_feature = false;
-            let current_node_deref = current_node;
-            let node_feature_name = current_node_deref.get_feature_name();
+
+            let node_feature_name = current_node.get_feature_name();
             let features = sample.features();
 
             for feature in features {
                 let feature_name = feature.get_name();
 
                 if feature_name == node_feature_name {
-					if feature.get_value() < current_node_deref.split_value() {
-						current_node = current_node_deref.get_left_subtree();
+                    let mut next_node = None;
+
+					if feature.get_value() < current_node.split_value() {
+						next_node = current_node.get_left_subtree();
                     } else {
-						current_node = current_node_deref.get_right_subtree();
+						next_node = current_node.get_right_subtree();
                     }
-                    found_feature = false;
+
+                    match next_node {
+                        None => {
+                            done = true;
+                        }
+                        Some(ref next_node) => {
+                            current_node = next_node;
+                        }
+                    }
+
+                    depth = depth + 1.0;
+                    found_feature = true;
                 }
+            }
+
+			// If the tree contained a feature not in the sample then take
+			// both sides of the tree and average the scores together.
+			if found_feature == false {
+                let left_tree = current_node.get_left_subtree();
+                let right_tree = current_node.get_right_subtree();
+                let mut left_depth = depth;
+                let mut right_depth = depth;
+
+                match left_tree {
+                    None => {
+                    }
+                    Some(ref left_tree) => {
+        			//	left_depth = left_depth + self.score_tree(sample, left_tree);
+                    }
+                }
+                match right_tree {
+                    None => {
+                    }
+                    Some(ref right_tree) => {
+                    }
+                }
+				return (left_depth + right_depth) / 2.0;
             }
         }
         depth
@@ -223,7 +261,7 @@ impl<'a> Forest<'a> {
 
         if self.trees.len() > 0 {
             for tree in self.trees {
-                score += self.score_tree(sample, Some(tree));
+                score += self.score_tree(sample, tree);
             }
             score /= self.trees.len() as f64;
         }
