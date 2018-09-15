@@ -32,7 +32,7 @@ fn main()
     let range = rand::distributions::Range::new(0.0, 100.0);
 
 	// Training samples.
-	for i in 0..100
+	for _i in 0..100
 	{
 		let mut sample = isolation_forest::Sample::new("");
 		let mut features = isolation_forest::FeatureList::new();

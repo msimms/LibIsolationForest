@@ -33,22 +33,6 @@ impl Feature {
     pub fn new (name: &str, value: u64) -> Feature {
         Feature { name: name.to_string(), value: value }
     }
-
-    pub fn set_name(&mut self, name: String) {
-        self.name = name;
-    }
-
-    pub fn get_name(&self) -> String {
-        self.name
-    }
-
-    pub fn set_value(&mut self, value: u64) {
-        self.value = value;
-    }
-
-    pub fn get_value(&self) -> u64 {
-        self.value
-    }
 }
 
 pub type FeatureList = Vec<Feature>;
@@ -68,7 +52,7 @@ impl Sample {
     }
 
     fn create_feature_list() -> FeatureList {
-        let mut v: FeatureList = vec![];
+        let v: FeatureList = vec![];
         v
     }
 
@@ -90,39 +74,28 @@ pub type SampleList = Vec<Sample>;
 /// Tree node, used internally.
 struct Node {
     feature_name: String,
+    split_value: u64,
     left: NodeLink,
     right: NodeLink,
 }
 
 impl Node {
-    pub fn new (feature_name: &str) -> Node {
-        Node { feature_name: feature_name.to_string(), left: None, right: None }
-    }
-
-    fn get_feature_name(&self) -> String {
-        self.feature_name
+    pub fn new (feature_name: &str, split_value: u64) -> Node {
+        Node { feature_name: feature_name.to_string(), split_value: split_value, left: None, right: None }
     }
 
 	fn set_left_subtree(&mut self, subtree: NodeBox) {
 		self.left = Some(subtree);
 	}
 
-    fn get_left_subtree(&self) -> NodeLink {
-        self.left
-    }
-
 	fn set_right_subtree(&mut self, subtree: NodeBox) {
 		self.right = Some(subtree);
 	}
-
-    fn get_right_subtree(&self) -> NodeLink {
-        self.right
-    }
 }
 
-pub type NodeBox = Box<Node>;
-pub type NodeLink = Option<Box<Node>>;
-pub type NodeList = Vec<Box<Node>>;
+type NodeBox = Box<Node>;
+type NodeLink = Option<Box<Node>>;
+type NodeList = Vec<Box<Node>>;
 
 /// Isolation Forest implementation.
 pub struct Forest<'a> {
@@ -156,7 +129,7 @@ impl<'a> Forest<'a> {
         }
     }
 
-    pub fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
+    fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
 		// Sanity check.
 		if feature_values.len() <= 1 {
 			return None;
@@ -179,7 +152,14 @@ impl<'a> Forest<'a> {
 		let mut split_value_index = 0;
 
 		// Create a tree node to hold the split value.
-        let mut tree = Some(Box::new(Node::new("")));
+        let mut tree = Some(Box::new(Node::new("", split_value_index)));
+
+        // Create two versions of the feature value set that we just used,
+        // one for the left side of the tree and one for the right.
+
+        // Create the left subtree.
+
+        // Create the right subtree.
 
         tree
     }
@@ -200,19 +180,19 @@ impl<'a> Forest<'a> {
         while !done {
             let mut found_feature = false;
 
-            let node_feature_name = current_node.get_feature_name();
+            let node_feature_name = current_node.feature_name;
             let features = sample.features();
 
             for feature in features {
-                let feature_name = feature.get_name();
+                let feature_name = feature.name;
 
                 if feature_name == node_feature_name {
                     let mut next_node = None;
 
-					if feature.get_value() < current_node.split_value() {
-						next_node = current_node.get_left_subtree();
+					if feature.value < current_node.split_value {
+						next_node = current_node.left;
                     } else {
-						next_node = current_node.get_right_subtree();
+						next_node = current_node.right;
                     }
 
                     match next_node {
@@ -232,8 +212,8 @@ impl<'a> Forest<'a> {
 			// If the tree contained a feature not in the sample then take
 			// both sides of the tree and average the scores together.
 			if found_feature == false {
-                let left_tree = current_node.get_left_subtree();
-                let right_tree = current_node.get_right_subtree();
+                let left_tree = current_node.left;
+                let right_tree = current_node.right;
                 let mut left_depth = depth;
                 let mut right_depth = depth;
 
@@ -241,13 +221,14 @@ impl<'a> Forest<'a> {
                     None => {
                     }
                     Some(ref left_tree) => {
-        			//	left_depth = left_depth + self.score_tree(sample, left_tree);
+        			    left_depth = left_depth + self.score_tree(sample, *left_tree);
                     }
                 }
                 match right_tree {
                     None => {
                     }
                     Some(ref right_tree) => {
+        			    right_depth = right_depth + self.score_tree(sample, *right_tree);
                     }
                 }
 				return (left_depth + right_depth) / 2.0;
