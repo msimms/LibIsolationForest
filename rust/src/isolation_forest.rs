@@ -20,7 +20,6 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
-use std::collections::HashSet;
 use std::collections::HashMap;
 
 /// Each feature has a name and value.
@@ -36,8 +35,8 @@ impl Feature {
 }
 
 pub type FeatureList = Vec<Feature>;
-pub type Uint64Set = HashSet<u64>;
-pub type FeatureNameToValuesMap<'a> = HashMap<&'a str, Uint64Set>;
+pub type Uint64Vec = Vec<u64>;
+pub type FeatureNameToValuesMap<'a> = HashMap<&'a String, Uint64Vec>;
 
 /// This class represents a sample.
 /// Each sample has a name and list of features.
@@ -62,10 +61,6 @@ impl Sample {
 
     pub fn add_feature(&mut self, feature: Feature) {
         self.features.push(feature);
-    }
-
-    pub fn features(&self) -> FeatureList {
-        self.features
     }
 }
 
@@ -111,25 +106,36 @@ impl<'a> Forest<'a> {
     }
 
     fn initialize_trees() -> NodeList {
-        let mut v: NodeList = vec![];
+        let v: NodeList = vec![];
         v
     }
 
     fn create_feature_name_to_values_map() -> FeatureNameToValuesMap<'a> {
-        let mut m = HashMap::new();
+        let m = HashMap::new();
         m
     }
 
-    pub fn add_sample(&self, sample: Sample) {
+    pub fn add_sample(&mut self, sample: Sample) {
 		// Add each of this sample's features to the list of known features
 		// with the corresponding set of unique values.
-		let mut features = sample.features();
-        for feature in &features {
-            let mut found_feature = false;
+
+        for feature in &sample.features {
+            if self.feature_values.contains_key(&feature.name) {
+                let mut feature_value_set = self.feature_values[&feature.name];
+                feature_value_set.push(feature.value);
+                self.feature_values[&feature.name] = feature_value_set;
+            }
+            else {
+                let mut feature_value_set = Vec::new();
+                feature_value_set.push(feature.value);
+                self.feature_values.insert(&feature.name, feature_value_set);
+            }
         }
     }
 
     fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
+        // Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
+
 		// Sanity check.
 		if feature_values.len() <= 1 {
 			return None;
@@ -165,6 +171,8 @@ impl<'a> Forest<'a> {
     }
 
     pub fn create(&self) {
+        // Creates a forest containing the number of trees specified to the constructor.
+
     	for _i in 0..self.num_trees_to_create {
             let tree = self.create_tree(self.feature_values, 0);
             if !tree.is_none() {
@@ -172,7 +180,9 @@ impl<'a> Forest<'a> {
         }
     }
 
-    fn score_tree(&self, sample: Sample, tree: NodeBox) -> f64 {
+    fn score_tree(&self, sample: &Sample, tree: NodeBox) -> f64 {
+        // Scores the sample against the specified tree.
+
         let mut depth = 0.0;
         let mut current_node = &*tree;
         let mut done = false;
@@ -180,13 +190,8 @@ impl<'a> Forest<'a> {
         while !done {
             let mut found_feature = false;
 
-            let node_feature_name = current_node.feature_name;
-            let features = sample.features();
-
-            for feature in features {
-                let feature_name = feature.name;
-
-                if feature_name == node_feature_name {
+            for feature in sample.features {
+                if feature.name == current_node.feature_name {
                     let mut next_node = None;
 
 					if feature.value < current_node.split_value {
@@ -238,11 +243,13 @@ impl<'a> Forest<'a> {
     }
 
     pub fn score(&self, sample: Sample) -> f64 {
+        // Scores the sample against the entire forest of trees.
+
         let mut score = 0.0;
 
         if self.trees.len() > 0 {
             for tree in self.trees {
-                score += self.score_tree(sample, tree);
+                score += self.score_tree(&sample, tree);
             }
             score /= self.trees.len() as f64;
         }
