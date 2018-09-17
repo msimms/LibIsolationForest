@@ -70,7 +70,7 @@ fn main()
 		sample.add_features(&mut features);
 
 		// Run a test with the sample that doesn't contain outliers.
-		let score = forest.score(sample);
+		let score = forest.score(&sample);
 		println!("Normal test sample {}: {}\n", i, score);
 	}
 
@@ -92,7 +92,7 @@ fn main()
 		sample.add_features(&mut features);
 
 		// Run a test with the sample that contains outliers.
-		let score = forest.score(sample);
+		let score = forest.score(&sample);
 		println!("Outlier test sample {}: {}\n", i, score);
 	}
 }

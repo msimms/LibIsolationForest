@@ -121,9 +121,8 @@ impl<'a> Forest<'a> {
 
         for feature in &sample.features {
             if self.feature_values.contains_key(&feature.name) {
-                let mut feature_value_set = self.feature_values[&feature.name];
+                let mut feature_value_set = &mut self.feature_values[&feature.name];
                 feature_value_set.push(feature.value);
-                self.feature_values[&feature.name] = feature_value_set;
             }
             else {
                 let mut feature_value_set = Vec::new();
@@ -133,7 +132,7 @@ impl<'a> Forest<'a> {
         }
     }
 
-    fn create_tree(&self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
+    fn create_tree(&mut self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
         // Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
 
 		// Sanity check.
@@ -170,42 +169,50 @@ impl<'a> Forest<'a> {
         tree
     }
 
-    pub fn create(&self) {
+    pub fn create(&mut self) {
         // Creates a forest containing the number of trees specified to the constructor.
 
     	for _i in 0..self.num_trees_to_create {
             let tree = self.create_tree(self.feature_values, 0);
-            if !tree.is_none() {
+            match tree {
+                None => {
+                }
+                Some(ref new_tree) => {
+                    self.trees.push(*new_tree);
+                }
             }
         }
     }
 
-    fn score_tree(&self, sample: &Sample, tree: NodeBox) -> f64 {
+    fn score_tree(&self, sample: &Sample, tree: &NodeBox) -> f64 {
         // Scores the sample against the specified tree.
 
         let mut depth = 0.0;
-        let mut current_node = &*tree;
+        let mut current_node = tree;
         let mut done = false;
 
         while !done {
             let mut found_feature = false;
 
-            for feature in sample.features {
+            for feature in &sample.features {
                 if feature.name == current_node.feature_name {
-                    let mut next_node = None;
-
 					if feature.value < current_node.split_value {
-						next_node = current_node.left;
-                    } else {
-						next_node = current_node.right;
-                    }
-
-                    match next_node {
-                        None => {
-                            done = true;
+                        match current_node.left {
+                            None => {
+                                done = true;
+                            }
+                            Some(ref next_node) => {
+                                current_node = next_node;
+                            }
                         }
-                        Some(ref next_node) => {
-                            current_node = next_node;
+                    } else {
+                        match current_node.right {
+                            None => {
+                                done = true;
+                            }
+                            Some(ref next_node) => {
+                                current_node = next_node;
+                            }
                         }
                     }
 
@@ -217,23 +224,23 @@ impl<'a> Forest<'a> {
 			// If the tree contained a feature not in the sample then take
 			// both sides of the tree and average the scores together.
 			if found_feature == false {
-                let left_tree = current_node.left;
-                let right_tree = current_node.right;
+                let left_tree = &current_node.left;
+                let right_tree = &current_node.right;
                 let mut left_depth = depth;
                 let mut right_depth = depth;
 
                 match left_tree {
-                    None => {
+                    &None => {
                     }
-                    Some(ref left_tree) => {
-        			    left_depth = left_depth + self.score_tree(sample, *left_tree);
+                    &Some(ref left_tree) => {
+        			    left_depth = left_depth + self.score_tree(sample, left_tree);
                     }
                 }
                 match right_tree {
-                    None => {
+                    &None => {
                     }
-                    Some(ref right_tree) => {
-        			    right_depth = right_depth + self.score_tree(sample, *right_tree);
+                    &Some(ref right_tree) => {
+        			    right_depth = right_depth + self.score_tree(sample, right_tree);
                     }
                 }
 				return (left_depth + right_depth) / 2.0;
@@ -242,14 +249,14 @@ impl<'a> Forest<'a> {
         depth
     }
 
-    pub fn score(&self, sample: Sample) -> f64 {
+    pub fn score(&self, sample: &Sample) -> f64 {
         // Scores the sample against the entire forest of trees.
 
         let mut score = 0.0;
 
         if self.trees.len() > 0 {
-            for tree in self.trees {
-                score += self.score_tree(&sample, tree);
+            for tree in &self.trees {
+                score += self.score_tree(sample, tree);
             }
             score /= self.trees.len() as f64;
         }
