@@ -80,7 +80,7 @@ def main():
         avg_normal_score = avg_normal_score + score
         print "Normal test sample " + str(i) + ": " + str(score)
     avg_normal_score = avg_normal_score / num_tests
-    print "Average of normal test samples: "+ str(avg_normal_score)
+    print "Average of normal test samples: " + str(avg_normal_score)
 
     # Test samples (different from training samples).
     print "Test samples that are different from the training set."
@@ -108,7 +108,7 @@ def main():
         avg_outlier_score = avg_outlier_score + score
         print "Outlier test sample " + str(i) + ": " + str(score)
     avg_outlier_score = avg_outlier_score / num_tests
-    print "Average of outlier test samples: "+ str(avg_outlier_score)
+    print "Average of outlier test samples: " + str(avg_outlier_score)
 
     # Create a trace.
     training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
