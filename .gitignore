@@ -41,4 +41,5 @@ tempmod/*
 *.log
 
 # Test output
-python/isolationforest_test.html
+python2/isolationforest_test.html
+python3/isolationforest_test.html
