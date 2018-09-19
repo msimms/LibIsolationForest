@@ -132,7 +132,7 @@ impl<'a> Forest<'a> {
         }
     }
 
-    fn create_tree(&mut self, feature_values: FeatureNameToValuesMap<'a>, depth: u32) -> NodeLink {
+    fn create_tree(&mut self, feature_values: FeatureNameToValuesMap, depth: u32) -> NodeLink {
         // Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
 
 		// Sanity check.
@@ -173,7 +173,8 @@ impl<'a> Forest<'a> {
         // Creates a forest containing the number of trees specified to the constructor.
 
     	for _i in 0..self.num_trees_to_create {
-            let tree = self.create_tree(self.feature_values, 0);
+            let temp_feature_values = self.feature_values.clone();
+            let tree = self.create_tree(temp_feature_values, 0);
             match tree {
                 None => {
                 }
