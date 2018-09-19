@@ -10,4 +10,5 @@ setup(
     author='Mike Simms',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=requirements,
+    python_requires='==2.7.*'
 )
