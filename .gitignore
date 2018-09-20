@@ -27,6 +27,7 @@ DerivedData
 MANIFEST
 dist/
 build/
+libisolationforest.egg-info/
 
 # Backup files
 *~.nib
