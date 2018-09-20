@@ -20,6 +20,8 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
+extern crate rand;
+use rand::distributions::IndependentSample;
 use std::collections::HashMap;
 
 /// Each feature has a name and value.
@@ -98,11 +100,12 @@ pub struct Forest<'a> {
     trees: NodeList, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
+    rng: rand::ThreadRng,
 }
 
 impl<'a> Forest<'a> {
     pub fn new (num_trees_to_create: u32, sub_sampling_size: u32) -> Forest<'a> {
-        Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map() }
+        Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map(), rng: rand::thread_rng() }
     }
 
     fn initialize_trees() -> NodeList {
@@ -146,10 +149,8 @@ impl<'a> Forest<'a> {
 		}
 
 		// Randomly select a feature.
-		let mut selected_feature_index = 0;
-		if feature_values.len() > 1 {
-			return None;
-		}
+        let range = rand::distributions::Range::new(0.0, (feature_values.len() as f32) - 1.0);
+		let selected_feature_index = range.ind_sample(&mut self.rng) as u32;
 
 		// Get the value list to split on.
 
