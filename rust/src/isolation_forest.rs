@@ -114,7 +114,7 @@ impl<'a> Forest<'a> {
     }
 
     fn create_feature_name_to_values_map() -> FeatureNameToValuesMap<'a> {
-        let m = HashMap::new();
+        let m = FeatureNameToValuesMap::new();
         m
     }
 
@@ -150,24 +150,33 @@ impl<'a> Forest<'a> {
 
 		// Randomly select a feature.
         let range = rand::distributions::Range::new(0.0, (feature_values.len() as f32) - 1.0);
-		let selected_feature_index = range.ind_sample(&mut self.rng) as u32;
+		let selected_feature_index = range.ind_sample(&mut self.rng) as usize;
+        let selected_feature_name = feature_values.keys().nth(selected_feature_index);
+        match selected_feature_name {
+            None => {
+                return None;
+            }
+            Some(ref name) => {
+        		// Randomly select a split value.
+                let feature_value_set = &feature_values[*name];
+                range = rand::distributions::Range::new(0.0, (feature_value_set.len() - 1) as f32);
+                let split_value_index = range.ind_sample(&mut self.rng) as usize;
+                let split_value = feature_value_set[split_value_index];
 
-		// Get the value list to split on.
+                // Create a tree node to hold the split value.
+                let mut tree = Some(Box::new(Node::new(name, split_value)));
 
-		// Randomly select a split value.
-		let mut split_value_index = 0;
+                // Create two versions of the feature value set that we just used,
+                // one for the left side of the tree and one for the right.
+                let temp_feature_values = feature_values.clone();
 
-		// Create a tree node to hold the split value.
-        let mut tree = Some(Box::new(Node::new("", split_value_index)));
+                // Create the left subtree.
 
-        // Create two versions of the feature value set that we just used,
-        // one for the left side of the tree and one for the right.
+                // Create the right subtree.
 
-        // Create the left subtree.
-
-        // Create the right subtree.
-
-        tree
+                tree
+            }
+        }
     }
 
     pub fn create(&mut self) {
