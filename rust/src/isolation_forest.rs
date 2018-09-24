@@ -149,7 +149,7 @@ impl<'a> Forest<'a> {
 		}
 
 		// Randomly select a feature.
-        let range = rand::distributions::Range::new(0.0, (feature_values.len() as f32) - 1.0);
+        let mut range = rand::distributions::Range::new(0.0, (feature_values.len() as f32) - 1.0);
 		let selected_feature_index = range.ind_sample(&mut self.rng) as usize;
         let selected_feature_name = feature_values.keys().nth(selected_feature_index);
         match selected_feature_name {
@@ -168,11 +168,17 @@ impl<'a> Forest<'a> {
 
                 // Create two versions of the feature value set that we just used,
                 // one for the left side of the tree and one for the right.
-                let temp_feature_values = feature_values.clone();
+                let mut temp_feature_values = feature_values.clone();
+                let (left_features, right_features) = feature_value_set.split_at(split_value_index);
 
                 // Create the left subtree.
+                temp_feature_values.insert(name, left_features.to_vec());
+                let left_subtree = self.create_tree(temp_feature_values, depth + 1);
+                tree.set_left_subtree(left_subtree);
 
                 // Create the right subtree.
+                temp_feature_values.insert(name, right_features.to_vec());
+                let right_subtree = self.create_tree(temp_feature_values, depth + 1);
 
                 tree
             }
