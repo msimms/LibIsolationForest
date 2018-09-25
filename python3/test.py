@@ -21,16 +21,20 @@
 #  SOFTWARE.
 
 import random
+import time
 import IsolationForest
 import plotly
 import plotly.graph_objs as go
 
-def main():
+def test1():
     num_trees = 10
     sub_sampling_size = 10
     forest = IsolationForest.Forest(num_trees, sub_sampling_size)
     num_training_samples = 100
     num_tests = 10
+
+    # Note the time at which the test began.
+    start_time = time.time()
 
     # Create some training samples.
     training_x = []
@@ -55,8 +59,6 @@ def main():
     forest.create()
 
     # Test samples (similar to training samples).
-    print("Test samples that are similar to the training set.")
-    print("--------------------------------------------------")
     normal_x = []
     normal_y = []
     avg_normal_score = 0.0
@@ -78,13 +80,9 @@ def main():
         # Run a test with the sample that doesn't contain outliers.
         score = forest.score(sample)
         avg_normal_score = avg_normal_score + score
-        print("Normal test sample " + str(i) + ": " + str(score))
     avg_normal_score = avg_normal_score / num_tests
-    print("Average of normal test samples: " + str(avg_normal_score))
 
     # Test samples (different from training samples).
-    print("Test samples that are different from the training set.")
-    print("------------------------------------------------------")
     outlier_x = []
     outlier_y = []
     avg_outlier_score = 0.0
@@ -106,9 +104,10 @@ def main():
         # Run a test with the sample that doesn't contain outliers.
         score = forest.score(sample)
         avg_outlier_score = avg_outlier_score + score
-        print("Outlier test sample " + str(i) + ": " + str(score))
     avg_outlier_score = avg_outlier_score / num_tests
-    print("Average of outlier test samples: " + str(avg_outlier_score))
+
+    # Compute the elapsed time.
+    elapsed_time = time.time() - start_time
 
     # Create a trace.
     training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
@@ -116,6 +115,16 @@ def main():
     outlier_trace = go.Scatter(x=outlier_x, y=outlier_y, mode='markers', name='outlier')
     data = [training_trace, normal_trace, outlier_trace]
     plotly.offline.plot(data, filename='isolationforest_test.html')
+    
+    return avg_normal_score, avg_outlier_score, elapsed_time
+
+def main():
+    print("Test 1")
+    print("------")
+    avg_normal_score, avg_outlier_score, elapsed_time = test1()
+    print("Average of normal test samples: " + str(avg_normal_score))
+    print("Average of outlier test samples: " + str(avg_outlier_score))
+    print("Total time for Test 1: " + str(elapsed_time) + " seconds.")
 
 if __name__ == "__main__":
     main()
