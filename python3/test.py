@@ -26,12 +26,8 @@ import IsolationForest
 import plotly
 import plotly.graph_objs as go
 
-def test1():
-    num_trees = 10
-    sub_sampling_size = 10
+def test1(num_trees, sub_sampling_size, num_training_samples, num_tests):
     forest = IsolationForest.Forest(num_trees, sub_sampling_size)
-    num_training_samples = 100
-    num_tests = 10
 
     # Note the time at which the test began.
     start_time = time.time()
@@ -121,10 +117,17 @@ def test1():
 def main():
     print("Test 1")
     print("------")
-    avg_normal_score, avg_outlier_score, elapsed_time = test1()
+    avg_normal_score, avg_outlier_score, elapsed_time = test1(10, 10, 100, 10)
     print("Average of normal test samples: " + str(avg_normal_score))
     print("Average of outlier test samples: " + str(avg_outlier_score))
     print("Total time for Test 1: " + str(elapsed_time) + " seconds.")
+
+    print("Test 2")
+    print("------")
+    avg_normal_score, avg_outlier_score, elapsed_time = test1(100, 100, 1000, 100)
+    print("Average of normal test samples: " + str(avg_normal_score))
+    print("Average of outlier test samples: " + str(avg_outlier_score))
+    print("Total time for Test 2: " + str(elapsed_time) + " seconds.")
 
 if __name__ == "__main__":
     main()
