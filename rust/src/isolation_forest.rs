@@ -164,7 +164,7 @@ impl<'a> Forest<'a> {
                 let split_value = feature_value_set[split_value_index];
 
                 // Create a tree node to hold the split value.
-                let mut tree = Some(Box::new(Node::new(name, split_value)));
+                let mut tree_root = Node::new(name, split_value);
 
                 // Create two versions of the feature value set that we just used,
                 // one for the left side of the tree and one for the right.
@@ -173,13 +173,13 @@ impl<'a> Forest<'a> {
 
                 // Create the left subtree.
                 temp_feature_values.insert(name, left_features.to_vec());
-                let left_subtree = self.create_tree(temp_feature_values, depth + 1);
-                tree.set_left_subtree(left_subtree);
+                tree_root.left = self.create_tree(temp_feature_values, depth + 1);
 
                 // Create the right subtree.
                 temp_feature_values.insert(name, right_features.to_vec());
-                let right_subtree = self.create_tree(temp_feature_values, depth + 1);
+                tree_root.right = self.create_tree(temp_feature_values, depth + 1);
 
+                let tree = Some(Box::new(tree_root));
                 tree
             }
         }
