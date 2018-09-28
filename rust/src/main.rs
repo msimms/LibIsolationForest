@@ -29,7 +29,8 @@ fn main()
 {
 	let mut forest = isolation_forest::Forest::new(10, 10);
     let mut rng = rand::thread_rng();
-    let range = rand::distributions::Range::new(0.0, 100.0);
+    let range1 = rand::distributions::Range::new(0.0, 25.0);
+    let range2 = rand::distributions::Range::new(20.0, 45.0);
 
 	// Training samples.
 	for _i in 0..100
@@ -37,10 +38,8 @@ fn main()
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = 0.3 * (range.ind_sample(&mut rng));
-		let y = 0.3 * (range.ind_sample(&mut rng));
-		let x = x as u64;
-		let y = y as u64;
+		let x = range1.ind_sample(&mut rng) as u64;
+		let y = range1.ind_sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));
@@ -60,10 +59,8 @@ fn main()
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = 0.3 * (range.ind_sample(&mut rng));
-		let y = 0.3 * (range.ind_sample(&mut rng));
-		let x = x as u64;
-		let y = y as u64;
+		let x = range1.ind_sample(&mut rng) as u64;
+		let y = range1.ind_sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));
@@ -82,10 +79,8 @@ fn main()
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
-		let y = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
-		let x = x as u64;
-		let y = y as u64;
+		let x = range2.ind_sample(&mut rng) as u64;
+		let y = range2.ind_sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));

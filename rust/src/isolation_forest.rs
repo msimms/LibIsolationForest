@@ -115,6 +115,8 @@ impl Forest {
             if self.feature_values.contains_key(&feature.name) {
                 let mut feature_value_set = self.feature_values[&feature.name].clone();
                 feature_value_set.push(feature.value);
+                feature_value_set.sort_unstable();
+                self.feature_values.insert(feature.name.clone(), feature_value_set);
             }
             else {
                 let mut feature_value_set = Vec::new();
@@ -128,7 +130,8 @@ impl Forest {
         // Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
 
 		// Sanity check.
-		if feature_values.len() <= 1 {
+        let feature_values_len = feature_values.len();
+		if feature_values_len <= 1 {
 			return None;
 		}
 
@@ -138,7 +141,7 @@ impl Forest {
 		}
 
 		// Randomly select a feature.
-        let range = rand::distributions::Range::new(0, feature_values.len());
+        let range = rand::distributions::Range::new(0, feature_values_len);
 		let selected_feature_index = range.ind_sample(&mut self.rng) as usize;
         let selected_feature_name = feature_values.keys().nth(selected_feature_index);
         let unwrapped_feature_name = selected_feature_name.unwrap();
@@ -150,7 +153,7 @@ impl Forest {
         if feature_value_set_len <= 0 {
             return None;
         }
-        else if feature_value_set_len > 1 {
+        else if feature_value_set_len >= 1 {
             let range2 = rand::distributions::Range::new(0, feature_value_set_len);
             split_value_index = range2.ind_sample(&mut self.rng) as usize;
         }
@@ -165,12 +168,16 @@ impl Forest {
         let (left_features, right_features) = feature_value_set.split_at(split_value_index);
 
         // Create the left subtree.
-        temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());
-        tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
+        if left_features.len() > 0 {
+            temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());
+            tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
+        }
 
         // Create the right subtree.
-        temp_feature_values.insert(unwrapped_feature_name.to_string(), right_features.to_vec());
-        tree_root.right = self.create_tree(temp_feature_values, depth + 1);
+        if right_features.len() > 0 {
+            temp_feature_values.insert(unwrapped_feature_name.to_string(), right_features.to_vec());
+            tree_root.right = self.create_tree(temp_feature_values.clone(), depth + 1);
+        }
 
         let tree = Some(Box::new(tree_root));
         tree
