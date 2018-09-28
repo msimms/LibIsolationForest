@@ -34,7 +34,7 @@ fn main()
 	// Training samples.
 	for _i in 0..100
 	{
-		let mut sample = isolation_forest::Sample::new("");
+		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 0.3 * (range.ind_sample(&mut rng));
@@ -53,11 +53,11 @@ fn main()
 	forest.create();
 
 	// Test samples (similar to training samples).
-	println!("Test samples that are similar to the training set.\n");
-	println!("--------------------------------------------------\n");
+	println!("Test samples that are similar to the training set.");
+	println!("--------------------------------------------------");
 	for i in 0..10
 	{
-		let mut sample = isolation_forest::Sample::new("");
+		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 0.3 * (range.ind_sample(&mut rng));
@@ -71,15 +71,15 @@ fn main()
 
 		// Run a test with the sample that doesn't contain outliers.
 		let score = forest.score(&sample);
-		println!("Normal test sample {}: {}\n", i, score);
+		println!("Normal test sample {}: {}", i, score);
 	}
 
 	// Outlier samples (different from training samples).
-	println!("Test samples that are different from the training set.\n");
-	println!("------------------------------------------------------\n");
+	println!("\nTest samples that are different from the training set.");
+	println!("------------------------------------------------------");
 	for i in 0..10
 	{
-		let mut sample = isolation_forest::Sample::new("");
+		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
 		let x = 25.0 + (0.5 * (range.ind_sample(&mut rng)));
@@ -93,6 +93,6 @@ fn main()
 
 		// Run a test with the sample that contains outliers.
 		let score = forest.score(&sample);
-		println!("Outlier test sample {}: {}\n", i, score);
+		println!("Outlier test sample {}: {}", i, score);
 	}
 }

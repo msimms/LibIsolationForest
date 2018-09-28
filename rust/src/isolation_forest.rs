@@ -43,13 +43,12 @@ pub type FeatureNameToValuesMap = HashMap<String, Uint64Vec>;
 /// This class represents a sample.
 /// Each sample has a name and list of features.
 pub struct Sample {
-    name: String,
     features: FeatureList,
 }
 
 impl Sample {
-    pub fn new (name: &str) -> Sample {
-        Sample { name: name.to_string(), features: Sample::create_feature_list() }
+    pub fn new () -> Sample {
+        Sample { features: Sample::create_feature_list() }
     }
 
     fn create_feature_list() -> FeatureList {
@@ -139,40 +138,42 @@ impl Forest {
 		}
 
 		// Randomly select a feature.
-        let mut range = rand::distributions::Range::new(0.0, (feature_values.len() as f32) - 1.0);
+        let range = rand::distributions::Range::new(0, feature_values.len());
 		let selected_feature_index = range.ind_sample(&mut self.rng) as usize;
         let selected_feature_name = feature_values.keys().nth(selected_feature_index);
-        match selected_feature_name {
-            None => {
-                return None;
-            }
-            Some(ref name) => {
-        		// Randomly select a split value.
-                let feature_value_set = &feature_values[*name];
-                range = rand::distributions::Range::new(0.0, (feature_value_set.len() - 1) as f32);
-                let split_value_index = range.ind_sample(&mut self.rng) as usize;
-                let split_value = feature_value_set[split_value_index];
+        let unwrapped_feature_name = selected_feature_name.unwrap();
 
-                // Create a tree node to hold the split value.
-                let mut tree_root = Node::new(name, split_value);
-
-                // Create two versions of the feature value set that we just used,
-                // one for the left side of the tree and one for the right.
-                let mut temp_feature_values = feature_values.clone();
-                let (left_features, right_features) = feature_value_set.split_at(split_value_index);
-
-                // Create the left subtree.
-                temp_feature_values.insert(name.to_string(), left_features.to_vec());
-                tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
-
-                // Create the right subtree.
-                temp_feature_values.insert(name.to_string(), right_features.to_vec());
-                tree_root.right = self.create_tree(temp_feature_values, depth + 1);
-
-                let tree = Some(Box::new(tree_root));
-                tree
-            }
+        // Randomly select a split value.
+        let feature_value_set = &feature_values[unwrapped_feature_name];
+        let feature_value_set_len = feature_value_set.len();
+        let mut split_value_index = 0;
+        if feature_value_set_len <= 0 {
+            return None;
         }
+        else if feature_value_set_len > 1 {
+            let range2 = rand::distributions::Range::new(0, feature_value_set_len);
+            split_value_index = range2.ind_sample(&mut self.rng) as usize;
+        }
+        let split_value = feature_value_set[split_value_index];
+
+        // Create a tree node to hold the split value.
+        let mut tree_root = Node::new(unwrapped_feature_name, split_value);
+
+        // Create two versions of the feature value set that we just used,
+        // one for the left side of the tree and one for the right.
+        let mut temp_feature_values = feature_values.clone();
+        let (left_features, right_features) = feature_value_set.split_at(split_value_index);
+
+        // Create the left subtree.
+        temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());
+        tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
+
+        // Create the right subtree.
+        temp_feature_values.insert(unwrapped_feature_name.to_string(), right_features.to_vec());
+        tree_root.right = self.create_tree(temp_feature_values, depth + 1);
+
+        let tree = Some(Box::new(tree_root));
+        tree
     }
 
     pub fn create(&mut self) {
@@ -195,9 +196,9 @@ impl Forest {
         while !done {
             let mut found_feature = false;
 
-            for feature in &sample.features {
-                if feature.name == current_node.feature_name {
-					if feature.value < current_node.split_value {
+            for current_feature in &sample.features {
+                if current_feature.name == current_node.feature_name {
+					if current_feature.value < current_node.split_value {
                         match current_node.left {
                             None => {
                                 done = true;
@@ -244,7 +245,8 @@ impl Forest {
         			    right_depth = right_depth + self.score_tree(sample, right_tree);
                     }
                 }
-				return (left_depth + right_depth) / 2.0;
+				depth = (left_depth + right_depth) / 2.0;
+                return depth;
             }
         }
         depth
@@ -257,7 +259,7 @@ impl Forest {
 
         if self.trees.len() > 0 {
             for tree in &self.trees {
-                score += self.score_tree(sample, tree);
+                score += self.score_tree(sample, tree) as f64;
             }
             score /= self.trees.len() as f64;
         }
