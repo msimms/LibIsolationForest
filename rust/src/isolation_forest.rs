@@ -38,7 +38,7 @@ impl Feature {
 
 pub type FeatureList = Vec<Feature>;
 pub type Uint64Vec = Vec<u64>;
-pub type FeatureNameToValuesMap<'a> = HashMap<&'a String, Uint64Vec>;
+pub type FeatureNameToValuesMap = HashMap<String, Uint64Vec>;
 
 /// This class represents a sample.
 /// Each sample has a name and list of features.
@@ -66,8 +66,6 @@ impl Sample {
     }
 }
 
-pub type SampleList = Vec<Sample>;
-
 /// Tree node, used internally.
 struct Node {
     feature_name: String,
@@ -80,14 +78,6 @@ impl Node {
     pub fn new (feature_name: &str, split_value: u64) -> Node {
         Node { feature_name: feature_name.to_string(), split_value: split_value, left: None, right: None }
     }
-
-	fn set_left_subtree(&mut self, subtree: NodeBox) {
-		self.left = Some(subtree);
-	}
-
-	fn set_right_subtree(&mut self, subtree: NodeBox) {
-		self.right = Some(subtree);
-	}
 }
 
 type NodeBox = Box<Node>;
@@ -95,16 +85,16 @@ type NodeLink = Option<Box<Node>>;
 type NodeList = Vec<Box<Node>>;
 
 /// Isolation Forest implementation.
-pub struct Forest<'a> {
-    feature_values: FeatureNameToValuesMap<'a>, // Lists each feature and maps it to all unique values in the training set
+pub struct Forest {
+    feature_values: FeatureNameToValuesMap, // Lists each feature and maps it to all unique values in the training set
     trees: NodeList, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
     rng: rand::ThreadRng,
 }
 
-impl<'a> Forest<'a> {
-    pub fn new (num_trees_to_create: u32, sub_sampling_size: u32) -> Forest<'a> {
+impl Forest {
+    pub fn new (num_trees_to_create: u32, sub_sampling_size: u32) -> Forest {
         Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map(), rng: rand::thread_rng() }
     }
 
@@ -113,7 +103,7 @@ impl<'a> Forest<'a> {
         v
     }
 
-    fn create_feature_name_to_values_map() -> FeatureNameToValuesMap<'a> {
+    fn create_feature_name_to_values_map() -> FeatureNameToValuesMap {
         let m = FeatureNameToValuesMap::new();
         m
     }
@@ -124,13 +114,13 @@ impl<'a> Forest<'a> {
 
         for feature in &sample.features {
             if self.feature_values.contains_key(&feature.name) {
-                let mut feature_value_set = &mut self.feature_values[&feature.name];
+                let mut feature_value_set = self.feature_values[&feature.name].clone();
                 feature_value_set.push(feature.value);
             }
             else {
                 let mut feature_value_set = Vec::new();
                 feature_value_set.push(feature.value);
-                self.feature_values.insert(&feature.name, feature_value_set);
+                self.feature_values.insert(feature.name.clone(), feature_value_set);
             }
         }
     }
@@ -172,11 +162,11 @@ impl<'a> Forest<'a> {
                 let (left_features, right_features) = feature_value_set.split_at(split_value_index);
 
                 // Create the left subtree.
-                temp_feature_values.insert(name, left_features.to_vec());
-                tree_root.left = self.create_tree(temp_feature_values, depth + 1);
+                temp_feature_values.insert(name.to_string(), left_features.to_vec());
+                tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
 
                 // Create the right subtree.
-                temp_feature_values.insert(name, right_features.to_vec());
+                temp_feature_values.insert(name.to_string(), right_features.to_vec());
                 tree_root.right = self.create_tree(temp_feature_values, depth + 1);
 
                 let tree = Some(Box::new(tree_root));
@@ -191,13 +181,7 @@ impl<'a> Forest<'a> {
     	for _i in 0..self.num_trees_to_create {
             let temp_feature_values = self.feature_values.clone();
             let tree = self.create_tree(temp_feature_values, 0);
-            match tree {
-                None => {
-                }
-                Some(ref new_tree) => {
-                    self.trees.push(*new_tree);
-                }
-            }
+            self.trees.push(tree.unwrap());
         }
     }
 
