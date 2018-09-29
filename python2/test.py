@@ -118,16 +118,16 @@ def main():
     print("Test 1")
     print("------")
     avg_normal_score, avg_outlier_score, elapsed_time = test1(10, 10, 100, 10)
-    print("Average of normal test samples: " + str(avg_normal_score))
-    print("Average of outlier test samples: " + str(avg_outlier_score))
-    print("Total time for Test 1: " + str(elapsed_time) + " seconds.")
+    print("Average of normal test samples: %.4f" % avg_normal_score)
+    print("Average of outlier test samples: %.4f" % avg_outlier_score)
+    print("Total time for Test 1: %.4f" % elapsed_time + " seconds.")
 
     print("Test 2")
     print("------")
     avg_normal_score, avg_outlier_score, elapsed_time = test1(100, 100, 1000, 100)
-    print("Average of normal test samples: " + str(avg_normal_score))
-    print("Average of outlier test samples: " + str(avg_outlier_score))
-    print("Total time for Test 2: " + str(elapsed_time) + " seconds.")
+    print("Average of normal test samples: %.4f" % avg_normal_score)
+    print("Average of outlier test samples: %.4f" % avg_outlier_score)
+    print("Total time for Test 2: %.4f" % elapsed_time + " seconds.")
 
 if __name__ == "__main__":
     main()

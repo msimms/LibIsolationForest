@@ -31,12 +31,6 @@ class Node(object):
         self.left = None
         self.right = None
 
-    def set_left_subtree(self, subtree):
-        self.left = subtree
-
-    def set_right_subtree(self, subtree):
-        self.left = subtree
-
 class Sample(object):
     """This class represents a sample. Each sample has a name and list of features."""
 
@@ -74,13 +68,14 @@ class Forest(object):
             else:
                 feature_value_set = []
                 feature_value_set.append(feature_value)
-                self.feature_values[feature_name] = feature_value_set 
+                self.feature_values[feature_name] = feature_value_set
 
     def create_tree(self, feature_values, depth):
         """Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion."""
 
         # Sanity check
-        if len(feature_values) <= 1:
+        feature_values_len = len(feature_values)
+        if feature_values_len <= 1:
             return None
 
 		# If we've exceeded the maximum desired depth, then stop.
@@ -88,17 +83,15 @@ class Forest(object):
             return None
 
         # Randomly select a feature.
-        selected_feature_index = random.randint(0, len(feature_values) - 1)
+        selected_feature_index = random.randint(0, feature_values_len - 1)
         selected_feature_name = feature_values.keys()[selected_feature_index]
 
         # Randomly select a split value.
-        split_value_index = 0
         feature_value_set = feature_values[selected_feature_name]
         feature_value_set_len = len(feature_value_set)
-        if feature_value_set_len == 0:
+        if feature_value_set_len <= 1:
             return None
-        elif feature_value_set_len > 1:
-            split_value_index = random.randint(0, feature_value_set_len - 1)
+        split_value_index = random.randint(0, feature_value_set_len - 1)
         split_value = feature_value_set[split_value_index]
 
         # Create a tree node to hold the split value.
@@ -111,14 +104,13 @@ class Forest(object):
         # Create the left subtree.
         left_features = feature_value_set[:split_value_index]
         temp_feature_values[selected_feature_name] = left_features
-        left_subtree = self.create_tree(temp_feature_values, depth + 1)
-        tree.set_left_subtree(left_subtree)
+        tree.left = self.create_tree(temp_feature_values, depth + 1)
 
         # Create the right subtree.
-        right_features = feature_value_set[split_value_index:]
-        temp_feature_values[selected_feature_name] = right_features
-        right_subtree = self.create_tree(temp_feature_values, depth + 1)
-        tree.set_right_subtree(right_subtree)
+        if split_value_index + 1 < feature_value_set_len:
+            right_features = feature_value_set[split_value_index + 1:]
+            temp_feature_values[selected_feature_name] = right_features
+            tree.right = self.create_tree(temp_feature_values, depth + 1)
 
         return tree
 
@@ -138,6 +130,8 @@ class Forest(object):
             # Find the next feature in the sample.
             for current_feature in sample.features:
                 current_feature_name = current_feature.keys()[0]
+
+                # If the current node has the feature in question.
                 if current_feature_name == current_node.feature_name:
                     current_feature_value = current_feature.values()[0]
                     if current_feature_value < current_node.split_value:

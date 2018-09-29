@@ -1,14 +1,12 @@
 from setuptools import setup, find_packages
 
-requirements = ['plotly']
-
 setup(
     name='libisolationforest',
-    version='0.1.0',
-    description='',
+    version='0.9.0',
+    description='An implementation of the Isolation Forest anomaly detection algorithm.',
     url='https://github.com/msimms/LibIsolationForest',
     author='Mike Simms',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=requirements,
+    install_requires=[],
     python_requires='==2.7.*'
 )

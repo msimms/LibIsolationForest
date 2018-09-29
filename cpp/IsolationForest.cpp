@@ -136,7 +136,8 @@ namespace IsolationForest
 	NodePtr Forest::CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth)
 	{
 		// Sanity check.
-		if (featureValues.size() <= 1)
+		size_t featureValuesLen = featureValues.size();
+		if (featureValuesLen <= 1)
 		{
 			return NULL;
 		}
@@ -148,7 +149,7 @@ namespace IsolationForest
 		}
 
 		// Randomly select a feature.
-		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValues.size() - 1);
+		size_t selectedFeatureIndex = (size_t)m_randomizer->RandUInt64(0, featureValuesLen - 1);
 		FeatureNameToValuesMap::const_iterator featureIter = featureValues.begin();
 		std::advance(featureIter, selectedFeatureIndex);
 		const std::string& selectedFeatureName = (*featureIter).first;
