@@ -1,0 +1,7 @@
+[package]
+name = "isolation_forest"
+version = "0.9.0"
+authors = ["Michael J Simms <msimms01@gmail.com>"]
+
+[dependencies]
+rand = "*"
