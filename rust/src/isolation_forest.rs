@@ -147,9 +147,9 @@ impl Forest {
         let unwrapped_feature_name = selected_feature_name.unwrap();
 
         // Randomly select a split value.
+        let mut split_value_index = 0;
         let feature_value_set = &feature_values[unwrapped_feature_name];
         let feature_value_set_len = feature_value_set.len();
-        let mut split_value_index = 0;
         if feature_value_set_len <= 0 {
             return None;
         }
@@ -169,7 +169,7 @@ impl Forest {
 
         // Create the left subtree.
         if left_features.len() > 0 {
-            temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());
+            temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());            
             tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
         }
 
@@ -189,7 +189,9 @@ impl Forest {
     	for _i in 0..self.num_trees_to_create {
             let temp_feature_values = self.feature_values.clone();
             let tree = self.create_tree(temp_feature_values, 0);
-            self.trees.push(tree.unwrap());
+            if tree.is_some() {
+                self.trees.push(tree.unwrap());
+            }
         }
     }
 

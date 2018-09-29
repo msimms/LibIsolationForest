@@ -27,6 +27,7 @@ use rand::distributions::IndependentSample;
 
 fn main()
 {
+	let num_tests = 10;
 	let mut forest = isolation_forest::Forest::new(10, 10);
     let mut rng = rand::thread_rng();
     let range1 = rand::distributions::Range::new(0.0, 25.0);
@@ -54,7 +55,8 @@ fn main()
 	// Test samples (similar to training samples).
 	println!("Test samples that are similar to the training set.");
 	println!("--------------------------------------------------");
-	for i in 0..10
+	let mut avg_normal_score = 0.0;
+	for i in 0..num_tests
 	{
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
@@ -68,13 +70,17 @@ fn main()
 
 		// Run a test with the sample that doesn't contain outliers.
 		let score = forest.score(&sample);
+		avg_normal_score = avg_normal_score + score;
 		println!("Normal test sample {}: {}", i, score);
 	}
+	avg_normal_score = avg_normal_score / num_tests as f64;
+    println!("Average of normal test samples: {}.", avg_normal_score);
 
 	// Outlier samples (different from training samples).
 	println!("\nTest samples that are different from the training set.");
 	println!("------------------------------------------------------");
-	for i in 0..10
+	let mut avg_outlier_score = 0.0;
+	for i in 0..num_tests
 	{
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
@@ -88,6 +94,9 @@ fn main()
 
 		// Run a test with the sample that contains outliers.
 		let score = forest.score(&sample);
+		avg_outlier_score = avg_outlier_score + score;
 		println!("Outlier test sample {}: {}", i, score);
 	}
+	avg_outlier_score = avg_outlier_score / num_tests as f64;
+    println!("Average of outlier test samples: {}.", avg_outlier_score);
 }
