@@ -143,16 +143,13 @@ impl Forest {
         let unwrapped_feature_name = selected_feature_name.unwrap();
 
         // Randomly select a split value.
-        let mut split_value_index = 0;
         let feature_value_set = &feature_values[unwrapped_feature_name];
         let feature_value_set_len = feature_value_set.len();
-        if feature_value_set_len <= 0 {
+        if feature_value_set_len <= 1 {
             return None;
         }
-        else if feature_value_set_len >= 1 {
-            let range2 = rand::distributions::Range::new(0, feature_value_set_len);
-            split_value_index = range2.ind_sample(&mut self.rng) as usize;
-        }
+        let range2 = rand::distributions::Range::new(0, feature_value_set_len);
+        let split_value_index = range2.ind_sample(&mut self.rng) as usize;
         let split_value = feature_value_set[split_value_index];
 
         // Create a tree node to hold the split value.
