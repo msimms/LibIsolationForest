@@ -59,10 +59,6 @@ impl Sample {
     pub fn add_features(&mut self, features: &mut FeatureList) {
         self.features.append(features);
     }
-
-    pub fn add_feature(&mut self, feature: Feature) {
-        self.features.push(feature);
-    }
 }
 
 /// Tree node, used internally.
@@ -168,10 +164,8 @@ impl Forest {
         let (left_features, right_features) = feature_value_set.split_at(split_value_index);
 
         // Create the left subtree.
-        if left_features.len() > 0 {
-            temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());            
-            tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
-        }
+        temp_feature_values.insert(unwrapped_feature_name.to_string(), left_features.to_vec());
+        tree_root.left = self.create_tree(temp_feature_values.clone(), depth + 1);
 
         // Create the right subtree.
         if right_features.len() > 0 {
@@ -206,6 +200,8 @@ impl Forest {
             let mut found_feature = false;
 
             for current_feature in &sample.features {
+
+                // If the current node has the feature in question.
                 if current_feature.name == current_node.feature_name {
 					if current_feature.value < current_node.split_value {
                         match current_node.left {
