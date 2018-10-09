@@ -37,3 +37,11 @@ sample.add_features(features)
 # Score the sample.
 score = forest.score(sample)
 ```
+
+## Rust Example
+
+An example of how to use the Rust version of the library can be found in `main.rs`. As the library matures, I'll add more test examples to this file.
+
+## C++ Example
+
+An example of how to use the C++ version of the library can be found in `main.cpp`. As the library matures, I'll add more test examples to this file.
