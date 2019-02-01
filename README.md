@@ -1,4 +1,4 @@
-[![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+[![C++](https://img.shields.io/badge/cpp-brightgreen.svg)]() [![Rust](https://img.shields.io/badge/rust-brightgreen.svg)](https://www.rust-lang.org) [![Python 2.7|3.7](https://img.shields.io/badge/python-2.7%2F3.7-brightgreen.svg)](https://www.python.org/) [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
 # LibIsolationForest
 
