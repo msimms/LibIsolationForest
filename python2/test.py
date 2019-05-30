@@ -196,7 +196,7 @@ def main():
 
     print("Test 1")
     print("------")
-    avg_normal_score, avg_outlier_score, elapsed_time = test_random(10, 10, 100, 10, args.plot)
+    avg_normal_score, avg_outlier_score, elapsed_time = test_random(10, 10, 100, 100, args.plot)
     print("Average of normal test samples: %.4f" % avg_normal_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_score)
     print("Total time for Test 1: %.4f" % elapsed_time + " seconds.\n")
@@ -208,9 +208,9 @@ def main():
     print("Average of outlier test samples: %.4f" % avg_outlier_score)
     print("Total time for Test 2: %.4f" % elapsed_time + " seconds.\n")
 
-    print("Test 3")
-    print("------")
-    avg_normal_score, avg_outlier_score, elapsed_time = test_iris(10, 10)
+    print("Test 3 (Iris Test)")
+    print("------------------")
+    avg_normal_score, avg_outlier_score, elapsed_time = test_iris(50, 50)
     print("Average of normal test samples: %.4f" % avg_normal_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_score)
     print("Total time for Test 2: %.4f" % elapsed_time + " seconds.")
