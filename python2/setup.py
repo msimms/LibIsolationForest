@@ -1,12 +1,16 @@
 from setuptools import setup, find_packages
 
+__version__ = '1.0.0'
+
 setup(
-    name='libisolationforest',
-    version='0.9.0',
+    name='IsolationForest',
+    version=__version__,
     description='An implementation of the Isolation Forest anomaly detection algorithm.',
     url='https://github.com/msimms/LibIsolationForest',
+    packages=['isolationforest',],
     author='Mike Simms',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    author_email='mike@mikesimms.net',
+    license='MIT',
     install_requires=[],
     python_requires='==2.7.*'
 )
