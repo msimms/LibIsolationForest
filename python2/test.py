@@ -26,7 +26,7 @@ import os
 import random
 import sys
 import time
-import IsolationForest
+from isolationforest import IsolationForest
 import plotly
 import plotly.graph_objs as go
 
