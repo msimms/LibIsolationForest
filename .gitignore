@@ -27,7 +27,15 @@ DerivedData
 MANIFEST
 dist/
 build/
-libisolationforest.egg-info/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # Backup files
 *~.nib
