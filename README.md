@@ -10,9 +10,15 @@ https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf
 
 ## Python Example
 
+The python implementation can be installed via pip:
+
+```pip install IsolationForest```
+
 Here's a short code snipet that shows how to use the Python version of the library. You can also read the file `test.py` for a complete example. As the library matures, I'll add more test examples to this file.
 
 ```python
+from isolationforest import IsolationForest
+
 forest = IsolationForest.Forest(num_trees, sub_sampling_size)
 
 sample = IsolationForest.Sample("Training Sample 1")
