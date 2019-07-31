@@ -53,3 +53,7 @@ An example of how to use the Rust version of the library can be found in `main.r
 ## C++ Example
 
 An example of how to use the C++ version of the library can be found in `main.cpp`. As the library matures, I'll add more test examples to this file.
+
+## License
+
+This library is released under the MIT license, see LICENSE for details.
