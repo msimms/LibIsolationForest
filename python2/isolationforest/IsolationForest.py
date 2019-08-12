@@ -116,7 +116,7 @@ class Forest(object):
 
     def create(self):
         """Creates a forest containing the number of trees specified to the constructor."""
-        for _ in range(0,self.num_trees):
+        for _ in range(0, self.num_trees):
             tree = self.create_tree(self.feature_values, 0)
             self.trees.append(tree)
 
@@ -160,9 +160,38 @@ class Forest(object):
         return score
 
     def destroy_tree(self, tree):
-        """Destroys the entire forest of trees."""
+        """Destroys a single tree."""
         pass
 
     def destroy(self):
+        """Destroys the entire forest of trees."""
         for tree in self.trees:
             self.destroy_tree(tree)
+
+    def dump_node(self, node):
+        """Returns the specified node as a dictionary object."""
+        data = {}
+        if node is not None:
+            data["Feature Name"] = node.feature_name
+            data["Split Value"] = node.split_value
+            data["Left"] = self.dump_node(node.left)
+            data["Right"] = self.dump_node(node.right)
+        return data
+
+    def dump_tree(self, tree):
+        """Returns the specified tree as a dictionary object."""
+        data = self.dump_node(tree)
+        return data
+
+    def dump(self):
+        """Returns the forest as a JSON object."""
+        data = {}
+        tree_index = 0
+        for tree in self.trees:
+            data["Tree " + str(tree_index)] = self.dump_tree(tree)
+            tree_index = tree_index + 1
+        return data
+
+    def load(self, data):
+        """Loads the forest from the JSON object."""
+        pass
