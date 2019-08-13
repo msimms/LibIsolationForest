@@ -154,7 +154,7 @@ class Forest(object):
         return depth
 
     def score(self, sample):
-        """Scores the sample against the entire forest of trees. Result is the average path length.."""
+        """Scores the sample against the entire forest of trees. Result is the average path length."""
         num_trees = 0.0
         avg_path_len = 0.0
         if self.trees is not None:
