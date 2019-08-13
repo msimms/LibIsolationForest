@@ -21,8 +21,9 @@
 //	SOFTWARE.
 
 extern crate rand;
-use rand::distributions::IndependentSample;
+
 use std::collections::HashMap;
+use rand::distributions::{Distribution, Uniform};
 
 /// Each feature has a name and value.
 pub struct Feature {
@@ -85,7 +86,7 @@ pub struct Forest {
     trees: NodeList, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
-    rng: rand::ThreadRng,
+    rng: rand::prelude::ThreadRng,
 }
 
 impl Forest {
@@ -137,8 +138,8 @@ impl Forest {
 		}
 
 		// Randomly select a feature.
-        let range = rand::distributions::Range::new(0, feature_values_len);
-		let selected_feature_index = range.ind_sample(&mut self.rng) as usize;
+        let range = Uniform::from(0..feature_values_len);
+		let selected_feature_index = range.sample(&mut self.rng) as usize;
         let selected_feature_name = feature_values.keys().nth(selected_feature_index);
         let unwrapped_feature_name = selected_feature_name.unwrap();
 
@@ -148,8 +149,8 @@ impl Forest {
         if feature_value_set_len <= 1 {
             return None;
         }
-        let range2 = rand::distributions::Range::new(0, feature_value_set_len);
-        let split_value_index = range2.ind_sample(&mut self.rng) as usize;
+        let range2 = Uniform::from(0..feature_value_set_len);
+        let split_value_index = range2.sample(&mut self.rng) as usize;
         let split_value = feature_value_set[split_value_index];
 
         // Create a tree node to hold the split value.
@@ -255,7 +256,7 @@ impl Forest {
     }
 
     pub fn score(&self, sample: &Sample) -> f64 {
-        // Scores the sample against the entire forest of trees.
+        // Scores the sample against the entire forest of trees. Result is the average path length.
 
         let mut score = 0.0;
 
@@ -265,6 +266,40 @@ impl Forest {
             }
             score /= self.trees.len() as f64;
         }
+        score
+    }
+
+    fn h(&self, i: usize) -> f64 {
+        let result = (i as f64).ln() + 0.5772156649;
+        result
+    }
+
+    fn c(&self, n: usize) -> f64 {
+        let result = 2.0 * self.h(n - 1) - (2 * (n - 1) / n) as f64;
+        result
+    }
+
+    pub fn normalized_score(&self, sample: &Sample) -> f64 {
+        // Scores the sample against the entire forest of trees. Result is normalized so that values
+        // close to 1 indicate anomalies and values close to zero indicate normal values."""
+
+        let mut score = 0.0;
+        let mut avg_path_len = 0.0;
+        let num_trees = self.trees.len();
+
+        // Compute the average path length for all valid trees.
+        if num_trees > 0 {
+            for tree in &self.trees {
+                avg_path_len += self.score_tree(sample, tree) as f64;
+            }
+            avg_path_len /= self.trees.len() as f64;
+
+            let exponent = -1.0 * (avg_path_len / self.c(num_trees));
+            let x = 2.0_f64;
+            score = x.powf(exponent);
+        }
+
+        // Normalize, per the original paper.
         score
     }
 }

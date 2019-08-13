@@ -23,15 +23,15 @@
 mod isolation_forest;
 
 extern crate rand;
-use rand::distributions::IndependentSample;
+use rand::distributions::{Distribution, Uniform};
 
 fn main()
 {
 	let num_tests = 10;
 	let mut forest = isolation_forest::Forest::new(10, 10);
     let mut rng = rand::thread_rng();
-    let range1 = rand::distributions::Range::new(0.0, 25.0);
-    let range2 = rand::distributions::Range::new(20.0, 45.0);
+    let range1 = Uniform::from(0..25);
+    let range2 = Uniform::from(25..50);
 
 	// Training samples.
 	for _i in 0..100
@@ -39,8 +39,8 @@ fn main()
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = range1.ind_sample(&mut rng) as u64;
-		let y = range1.ind_sample(&mut rng) as u64;
+		let x = range1.sample(&mut rng) as u64;
+		let y = range1.sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));
@@ -55,14 +55,15 @@ fn main()
 	// Test samples (similar to training samples).
 	println!("Test samples that are similar to the training set.");
 	println!("--------------------------------------------------");
-	let mut avg_normal_score = 0.0;
+	let mut avg_control_score = 0.0;
+	let mut avg_control_normalized_score = 0.0;
 	for i in 0..num_tests
 	{
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = range1.ind_sample(&mut rng) as u64;
-		let y = range1.ind_sample(&mut rng) as u64;
+		let x = range1.sample(&mut rng) as u64;
+		let y = range1.sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));
@@ -70,23 +71,28 @@ fn main()
 
 		// Run a test with the sample that doesn't contain outliers.
 		let score = forest.score(&sample);
-		avg_normal_score = avg_normal_score + score;
-		println!("Normal test sample {}: {}", i, score);
+		avg_control_score = avg_control_score + score;
+        let normalized_score = forest.normalized_score(&sample);
+        avg_control_normalized_score = avg_control_normalized_score + normalized_score;
+		println!("Control test sample {}: {} {}", i, score, normalized_score);
 	}
-	avg_normal_score = avg_normal_score / num_tests as f64;
-    println!("Average of normal test samples: {}.", avg_normal_score);
+	avg_control_score = avg_control_score / num_tests as f64;
+	avg_control_normalized_score = avg_control_normalized_score / num_tests as f64;
+    println!("Average of control test samples: {}.", avg_control_score);
+    println!("Average of control test samples (normalized): {}.", avg_control_normalized_score);
 
 	// Outlier samples (different from training samples).
 	println!("\nTest samples that are different from the training set.");
 	println!("------------------------------------------------------");
 	let mut avg_outlier_score = 0.0;
+	let mut avg_outlier_normalized_score = 0.0;
 	for i in 0..num_tests
 	{
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
 
-		let x = range2.ind_sample(&mut rng) as u64;
-		let y = range2.ind_sample(&mut rng) as u64;
+		let x = range2.sample(&mut rng) as u64;
+		let y = range2.sample(&mut rng) as u64;
 
 		features.push(isolation_forest::Feature::new("x", x));
 		features.push(isolation_forest::Feature::new("y", y));
@@ -95,8 +101,12 @@ fn main()
 		// Run a test with the sample that contains outliers.
 		let score = forest.score(&sample);
 		avg_outlier_score = avg_outlier_score + score;
-		println!("Outlier test sample {}: {}", i, score);
+        let normalized_score = forest.normalized_score(&sample);
+        avg_outlier_normalized_score = avg_outlier_normalized_score + normalized_score;
+		println!("Outlier test sample {}: {} {}", i, score, normalized_score);
 	}
 	avg_outlier_score = avg_outlier_score / num_tests as f64;
+	avg_outlier_normalized_score = avg_outlier_normalized_score / num_tests as f64;
     println!("Average of outlier test samples: {}.", avg_outlier_score);
+    println!("Average of outlier test samples (normalized): {}.", avg_outlier_normalized_score);
 }
