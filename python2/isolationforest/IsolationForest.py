@@ -20,6 +20,8 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+import copy
+import math
 import random
 
 class Node(object):
@@ -117,7 +119,8 @@ class Forest(object):
     def create(self):
         """Creates a forest containing the number of trees specified to the constructor."""
         for _ in range(0, self.num_trees):
-            tree = self.create_tree(self.feature_values, 0)
+            temp_feature_values = copy.deepcopy(self.feature_values)
+            tree = self.create_tree(temp_feature_values, 0)
             self.trees.append(tree)
 
     def score_tree(self, sample, tree):
@@ -138,7 +141,7 @@ class Forest(object):
                         current_node = current_node.left
                     else:
                         current_node = current_node.right
-                    depth = depth + 1
+                    depth = depth + 1.0
                     found_feature = True
                     break
 
@@ -151,12 +154,44 @@ class Forest(object):
         return depth
 
     def score(self, sample):
-        """Scores the sample against the entire forest of trees."""
-        score = 0.0
+        """Scores the sample against the entire forest of trees. Result is the average path length.."""
+        num_trees = 0.0
+        avg_path_len = 0.0
         if self.trees is not None:
             for tree in self.trees:
-                score = score + self.score_tree(sample, tree)
-            score = score / len(self.trees)
+                path_len = self.score_tree(sample, tree)
+                if path_len > 0:
+                    avg_path_len = avg_path_len + path_len
+                    num_trees = num_trees + 1.0
+            if num_trees > 0.0:
+                avg_path_len = avg_path_len / num_trees
+        return avg_path_len
+
+    def normalized_score(self, sample):
+        """ Scores the sample against the entire forest of trees. Result is normalized so that values
+            close to 1 indicate anomalies and values close to zero indicate normal values."""
+        def H(i):
+            return math.log(i) + 0.5772156649
+        def C(n):
+            return 2 * H(n - 1) - (2 * (n - 1) / n)
+
+        # Compute the average path length for all valid trees.
+        num_trees = 0.0
+        avg_path_len = 0.0
+        if self.trees is not None:
+            for tree in self.trees:
+                path_len = self.score_tree(sample, tree)
+                if path_len > 0:
+                    avg_path_len = avg_path_len + path_len
+                    num_trees = num_trees + 1.0
+            if num_trees > 0.0:
+                avg_path_len = avg_path_len / num_trees
+        
+        # Normalize, per the original paper.
+        score = 0.0
+        if num_trees > 1.0:
+            exponent = -1.0 * (avg_path_len / C(num_trees))
+            score = pow(2, exponent)
         return score
 
     def destroy_tree(self, tree):
