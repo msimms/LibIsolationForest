@@ -44,6 +44,7 @@ sample.add_features(features)
 
 # Score the sample.
 score = forest.score(sample)
+normalized_score = forest.normalized_score(sample)
 ```
 
 ## Rust Example
