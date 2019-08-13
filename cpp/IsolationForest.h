@@ -141,7 +141,9 @@ namespace IsolationForest
 		void SetRandomizer(Randomizer* newRandomizer);
 		void AddSample(const Sample& sample);
 		void Create();
+
 		double Score(const Sample& sample);
+        double NormalizedScore(const Sample& sample);
 
 	private:
 		Randomizer* m_randomizer; // Performs random number generation

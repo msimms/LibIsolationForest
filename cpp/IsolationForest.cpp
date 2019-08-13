@@ -21,6 +21,7 @@
 //	SOFTWARE.
 
 #include "IsolationForest.h"
+#include <math.h>
 
 namespace IsolationForest
 {
@@ -262,23 +263,54 @@ namespace IsolationForest
 		return depth;
 	}
 
-	/// Scores the sample against the entire forest of trees.
+	/// Scores the sample against the entire forest of trees. Result is the average path length.
 	double Forest::Score(const Sample& sample)
 	{
-		double score = (double)0.0;
+		double avgPathLen = (double)0.0;
 		
 		if (m_trees.size() > 0)
 		{
 			NodePtrList::const_iterator treeIter = m_trees.begin();
 			while (treeIter != m_trees.end())
 			{
-				score += (double)Score(sample, (*treeIter));
+				avgPathLen += (double)Score(sample, (*treeIter));
 				++treeIter;
 			}
-			score /= (double)m_trees.size();
+			avgPathLen /= (double)m_trees.size();
+		}
+		return avgPathLen;
+	}
+
+	#define H(i) (log(i) + 0.5772156649)
+	#define C(n) (2 * H(n - 1) - (2 * (n - 1) / n))
+
+	/// Scores the sample against the entire forest of trees. Result is normalized so that values
+    /// close to 1 indicate anomalies and values close to zero indicate normal values.
+	double Forest::NormalizedScore(const Sample& sample)
+    {
+		double score = (double)0.0;
+		size_t numTrees = m_trees.size();
+
+		if (numTrees > 0)
+		{
+			double avgPathLen = (double)0.0;
+
+			NodePtrList::const_iterator treeIter = m_trees.begin();
+			while (treeIter != m_trees.end())
+			{
+				avgPathLen += (double)Score(sample, (*treeIter));
+				++treeIter;
+			}
+			avgPathLen /= (double)numTrees;
+
+			if (numTrees > 1)
+			{
+				double exponent = -1.0 * (avgPathLen / C(numTrees));
+				score = pow(2, exponent);
+			}
 		}
 		return score;
-	}
+    }
 
 	/// Destroys the entire forest of trees.
 	void Forest::Destroy()
