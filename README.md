@@ -55,6 +55,15 @@ An example of how to use the Rust version of the library can be found in `main.r
 
 An example of how to use the C++ version of the library can be found in `main.cpp`. As the library matures, I'll add more test examples to this file.
 
+## Version History
+
+### 1.0
+* Initial version.
+
+### 1.1
+* Added normalized scores.
+* Updated random number generation in rust, because it changed again.
+
 ## License
 
 This library is released under the MIT license, see LICENSE for details.
