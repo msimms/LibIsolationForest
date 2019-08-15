@@ -95,6 +95,8 @@ namespace IsolationForest
 		void SetLeftSubTree(Node* subtree);
 		void SetRightSubTree(Node* subtree);
 
+		std::string Dump() const;
+
 	private:
 		std::string m_featureName;
 		uint64_t m_splitValue;
@@ -145,6 +147,8 @@ namespace IsolationForest
 		double Score(const Sample& sample);
         double NormalizedScore(const Sample& sample);
 
+		std::string Dump() const;
+
 	private:
 		Randomizer* m_randomizer; // Performs random number generation
 		FeatureNameToValuesMap m_featureValues; // Lists each feature and maps it to all unique values in the training set
@@ -154,6 +158,7 @@ namespace IsolationForest
 
 		NodePtr CreateTree(const FeatureNameToValuesMap& featureValues, size_t depth);
 		double Score(const Sample& sample, const NodePtr tree);
+
 		void Destroy();
 		void DestroyRandomizer();
 	};

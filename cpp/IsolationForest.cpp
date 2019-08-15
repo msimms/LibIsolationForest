@@ -25,6 +25,7 @@
 
 namespace IsolationForest
 {
+	/// Constructor.
 	Node::Node() :
 		m_splitValue(0),
 		m_left(NULL),
@@ -32,6 +33,7 @@ namespace IsolationForest
 	{
 	}
 
+	/// Constructor.
 	Node::Node(const std::string& featureName, uint64_t splitValue) :
 		m_featureName(featureName),
 		m_splitValue(splitValue),
@@ -40,6 +42,7 @@ namespace IsolationForest
 	{
 	}
 
+	/// Destructor.
 	Node::~Node()
 	{
 		DestroyLeftSubtree();
@@ -76,6 +79,30 @@ namespace IsolationForest
 		}
 	}
 
+	/// Returns the node as a JSON string.
+	std::string Node::Dump() const
+	{
+		std::string data = "{";
+
+		data.append("'Feature Name': '");
+		data.append(this->m_featureName);
+		data.append("', 'Split Value': ");
+		data.append(std::to_string(m_splitValue));
+		data.append(", 'Left': ");
+		if (this->m_left)
+			data.append(this->m_left->Dump());
+		else
+			data.append("{}");
+		data.append(", 'Right': ");
+		if (this->m_right)
+			data.append(this->m_right->Dump());
+		else
+			data.append("{}");
+		data.append("}");
+		return data;
+	}
+
+	/// Constructor.
 	Forest::Forest() :
 		m_randomizer(new Randomizer()),
 		m_numTreesToCreate(10),
@@ -83,6 +110,7 @@ namespace IsolationForest
 	{
 	}
 
+	/// Constructor.
 	Forest::Forest(uint32_t numTrees, uint32_t subSamplingSize) :
 		m_randomizer(new Randomizer()),
 		m_numTreesToCreate(numTrees),
@@ -90,6 +118,7 @@ namespace IsolationForest
 	{
 	}
 
+	/// Destructor.
 	Forest::~Forest()
 	{
 		DestroyRandomizer();
@@ -336,5 +365,30 @@ namespace IsolationForest
 			delete m_randomizer;
 			m_randomizer = NULL;
 		}
+	}
+
+	/// Returns the forest as a JSON object.
+	std::string Forest::Dump() const
+	{
+		std::string data = "{";
+		size_t treeIndex = 0;
+
+		std::vector<NodePtr>::const_iterator iter = m_trees.begin();
+		while (iter != m_trees.end())
+		{
+			NodePtr tree = (*iter);
+			std::string treeData = "'Tree ";
+
+			treeData.append(std::to_string(treeIndex));
+			treeData.append("': ");
+			treeData.append(tree->Dump());
+			++iter;
+			if (iter != m_trees.end())
+				treeData.append(", ");
+			++treeIndex;
+			data.append(treeData);
+		}
+		data.append("}");
+		return data;
 	}
 }
