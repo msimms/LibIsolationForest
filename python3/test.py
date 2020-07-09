@@ -29,8 +29,6 @@ import random
 import sys
 import time
 from isolationforest import IsolationForest
-import plotly
-import plotly.graph_objs as go
 
 def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, plot):
     forest = IsolationForest.Forest(num_trees, sub_sampling_size)
@@ -121,6 +119,9 @@ def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, p
 
     # Create a trace.
     if plot:
+        import plotly
+        import plotly.graph_objs as go
+
         training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
         normal_trace = go.Scatter(x=normal_x, y=normal_y, mode='markers', name='normal')
         outlier_trace = go.Scatter(x=outlier_x, y=outlier_y, mode='markers', name='outlier')
