@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 #  MIT License
 #
 #  Copyright (c) 2018 Michael J Simms. All rights reserved.
