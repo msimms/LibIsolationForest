@@ -27,9 +27,11 @@ Pkg.add("ArgParse")
 using ArgParse
 Pkg.add("CSV")
 using CSV
+Pkg.add("Dates")
+using Dates
 
-function test_random(numTrees::UInt64, subsamplingsize::UInt64, numtrainingsamples::UInt64, numtests::UInt64)
-    forest = IsolationForest::Forest(numTrees, subSamplingSize)
+function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_samples::Int64, num_tests::Int64)
+    forest = IsolationForest.Forest(num_trees, sub_sampling_size, [], [])
 
     # Note the time at which the test began.
     start_time = now()
@@ -37,28 +39,84 @@ function test_random(numTrees::UInt64, subsamplingsize::UInt64, numtrainingsampl
     # Create some training samples.
     training_x = []
     training_y = []
-    for i in range(0, num_training_samples)
-        sample = IsolationForest::Sample()
-        sample.name = "Training Sample " + i
+    for i = 0:num_training_samples
+        sample_name = string("Training Sample ", i)
+        sample = IsolationForest.Sample(sample_name, Dict())
 
         x = rand(Int, (0, 25))
         y = rand(Int, (0, 25))
 
         features = Dict([("x", x), ("y", y)])
-        sample.add_features(features)
-        forest.add_sample(sample)
+        IsolationForest.sample_add_features(sample, features)
+        IsolationForest.forest_add_sample(forest, sample)
 
         # So we can graph this later.
-        training_x.append(x)
-        training_y.append(y)
+        push!(training_x, x)
+        push!(training_y, y)
     end
 
+    # Test samples (similar to training samples).
+    normal_x = []
+    normal_y = []
+    avg_control_set_score = 0.0
+    avg_control_set_normalized_score = 0.0
+    for i = 0:num_tests
+        sample_name = string("Normal Sample ", i)
+        sample = IsolationForest.Sample(sample_name, Dict())
+
+        x = rand(Int, (0, 25))
+        y = rand(Int, (0, 25))
+
+        features = Dict([("x", x), ("y", y)])
+        IsolationForest.sample_add_features(sample, features)
+
+        # So we can graph this later.
+        push!(normal_x, x)
+        push!(normal_y, y)
+
+        # Run a test with the sample that doesn't contain outliers.
+        score = IsolationForest.forest_score(forest, sample)
+        normalized_score = IsolationForest.forest_normalized_score(forest, sample)
+        avg_control_set_score = avg_control_set_score + score
+        avg_control_set_normalized_score = avg_control_set_normalized_score + normalized_score
+    end
+    avg_control_set_score = avg_control_set_score / num_tests
+    avg_control_set_normalized_score = avg_control_set_normalized_score / num_tests
+
+    # Test samples (different from training samples).
+    outlier_x = []
+    outlier_y = []
+    avg_outlier_set_score = 0.0
+    avg_outlier_set_normalized_score = 0.0
+    for i = 0:num_tests
+        sample_name = string("Outlier Sample ", i)
+        sample = IsolationForest.Sample(sample_name, Dict())
+
+        x = rand(Int, (20, 45))
+        y = rand(Int, (20, 45))
+
+        features = Dict([("x", x), ("y", y)])
+        IsolationForest.sample_add_features(sample, features)
+
+        # So we can graph this later.
+        push!(outlier_x, x)
+        push!(outlier_y, y)
+
+        # Run a test with the sample that doesn't contain outliers.
+        score = IsolationForest.forest_score(forest, sample)
+        normalized_score = IsolationForest.forest_normalized_score(forest, sample)
+        avg_outlier_set_score = avg_outlier_set_score + score
+        avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score
+    end
+    avg_outlier_set_score = avg_outlier_set_score / num_tests
+    avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_tests
+
     # Compute the elapsed time.
-    elapsed_time = time.time() - start_time
+    elapsed_time = now() - start_time
 end
 
-function test_iris(numTrees::UInt64, subSamplingSize::UInt64)
-    forest = IsolationForest::Forest(numTrees, subSamplingSize)
+function test_iris(num_trees::Int64, sub_sampling_size::Int64)
+    forest = IsolationForest.Forest(num_trees, sub_sampling_size, [], [])
 
     avg_control_set_score = 0.0
     avg_outlier_set_score = 0.0
@@ -72,7 +130,7 @@ function test_iris(numTrees::UInt64, subSamplingSize::UInt64)
 
 
     # Compute the elapsed time.
-    elapsed_time = time.time() - start_time
+    elapsed_time = now() - start_time
 end
 
 function read_iris_data(fileName::String)
@@ -99,6 +157,9 @@ function parse_commandline()
     return parse_args(s)
 end
 
+# Parse command line options.
+parsed_args = parse_commandline()
+
 println("Test 1")
 println("------")
 avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(10, 10, 100, 100)
@@ -107,3 +168,21 @@ println("Average of normalized control test samples: ", avg_control_set_normaliz
 println("Average of outlier test samples: ", avg_outlier_set_score)
 println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
 println("Total time for Test 1: ", elapsed_time + " seconds.")
+
+println("Test 2")
+println("------")
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(100, 100, 1000, 100)
+println("Average of control test samples: ", avg_control_set_score)
+println("Average of normalized control test samples: ", avg_control_set_normalized_score)
+println("Average of outlier test samples: ", avg_outlier_set_score)
+println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
+println("Total time for Test 2: ", elapsed_time + " seconds.")
+
+println("Test 3 (Iris Test)")
+println("------------------")
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50)
+println("Average of control test samples: ", avg_control_set_score)
+println("Average of normalized control test samples: ", avg_control_set_normalized_score)
+println("Average of outlier test samples: ", avg_outlier_set_score)
+println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
+println("Total time for Test 3 (Iris Data): ", elapsed_time + " seconds.")

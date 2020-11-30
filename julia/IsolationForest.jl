@@ -33,7 +33,7 @@ end
 # This struct represents a sample. Each sample has a name and list of features.
 mutable struct Sample
     name::String
-    features::Array
+    features::Dict
 end
 
 # Isolation Forest.
@@ -44,15 +44,28 @@ mutable struct Forest
     trees::Array
 end
 
-function initializeForest(forest::Forest)
+# Adds the features to the specified sample.
+function sample_add_features(sample::Sample, features::Dict)
+    sample.features = features
 end
 
 # Adds each of the sample's features to the list of known features with the corresponding set of unique values.
-function addSample(forest::Forest, sample::Sample)
+function forest_add_sample(forest::Forest, sample::Sample)
 
     # We don't store the sample directly, just the features.
     for feature in sample.features
     end
+end
+
+# Scores the sample against the entire forest of trees. Result is the average path length.
+function forest_score(forest::Forest, sample::Sample)
+    return 0.0
+end
+
+# Scores the sample against the entire forest of trees. Result is normalized so that values
+# close to 1 indicate anomalies and values close to zero indicate normal values.
+function forest_normalized_score(forest::Forest, sample::Sample)
+    return 0.0
 end
 
 end

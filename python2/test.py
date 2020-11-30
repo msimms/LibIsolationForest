@@ -236,7 +236,7 @@ def main():
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)
     print("Average of normalized outlier test samples: %.4f" % avg_outlier_set_normalized_score)
-    print("Total time for Test 2: %.4f" % elapsed_time + " seconds.")
+    print("Total time for Test 3 (Iris Test): %.4f" % elapsed_time + " seconds.")
 
 if __name__ == "__main__":
     main()
