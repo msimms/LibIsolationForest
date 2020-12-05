@@ -45,27 +45,113 @@ mutable struct Forest
 end
 
 # Adds the features to the specified sample.
-function sample_add_features(sample::Sample, features::Dict)
+function add_features_to_sample(sample::Sample, features::Dict)
     sample.features = features
 end
 
 # Adds each of the sample's features to the list of known features with the corresponding set of unique values.
-function forest_add_sample(forest::Forest, sample::Sample)
+function add_sample_to_forest(forest::Forest, sample::Sample)
 
     # We don't store the sample directly, just the features.
     for feature in sample.features
     end
 end
 
+# Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
+function create_tree(feature_values::Array, depth::UInt64)
+
+    # Sanity check
+    feature_values_len = len(feature_values)
+    if feature_values_len <= 1
+        return Nothing
+    end
+end
+
+# Scores the sample against the specified tree.
+function score_sample_against_tree(tree::Node, sample::Sample)
+    depth = 0.0
+    current_node = tree
+
+    while current_node != missing
+        found_feature = false
+
+        # Find the next feature in the sample.
+        for current_feature in sample.features
+            current_feature_name = list(current_feature)[0]
+
+            # If the current node has the feature in question.
+            if current_feature_name == current_node.feature_name
+                current_feature_value = list(current_feature.values())[0]
+                if current_feature_value < current_node.split_value
+                    current_node = current_node.left
+                else
+                    current_node = current_node.right
+                end
+
+                depth = depth + 1.0
+                found_feature = True
+                break
+            end
+        end
+
+        # If the tree contained a feature not in the sample then take
+        # both sides of the tree and average the scores together.
+        if not found_feature
+            left_depth = depth + score_sample_against_tree(sample, current_node.left)
+            right_depth = depth + score_sample_against_tree(sample, current_node.right)
+            return (left_depth + right_depth) / 2.0
+        end
+    end
+
+    return depth
+end
+
 # Scores the sample against the entire forest of trees. Result is the average path length.
-function forest_score(forest::Forest, sample::Sample)
-    return 0.0
+function score_sample_against_forest(forest::Forest, sample::Sample)
+    num_trees = 0
+    avg_path_len = 0.0
+
+    for tree in forest.trees
+        path_len = score_sample_against_tree(tree, sample)
+        if path_len > 0
+            avg_path_len = avg_path_len + path_len
+            num_trees = num_trees + 1
+        end
+    end
+
+    if num_trees > 0
+        avg_path_len = avg_path_len / num_trees
+    end
+
+    return avg_path_len
 end
 
 # Scores the sample against the entire forest of trees. Result is normalized so that values
 # close to 1 indicate anomalies and values close to zero indicate normal values.
 function forest_normalized_score(forest::Forest, sample::Sample)
-    return 0.0
+
+    # Compute the average path length for all valid trees.
+    num_trees = 0
+    avg_path_len = 0.0
+
+    for tree in forest.trees
+        path_len = score_sample_against_tree(tree, sample)
+        if path_len > 0
+            avg_path_len = avg_path_len + path_len
+            num_trees = num_trees + 1
+        end
+    end
+
+    if num_trees > 0
+        avg_path_len = avg_path_len / num_trees
+    end
+
+    # Normalize, per the original paper.
+    score = 0.0
+    if num_trees > 1.0
+    end
+
+    return score
 end
 
 end
