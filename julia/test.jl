@@ -55,6 +55,9 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
         push!(training_y, y)
     end
 
+    # Create the forest.
+    IsolationForest.create_forest(forest)
+
     # Test samples (similar to training samples).
     normal_x = []
     normal_y = []
@@ -76,7 +79,7 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
 
         # Run a test with the sample that doesn't contain outliers.
         score = IsolationForest.score_sample_against_forest(forest, sample)
-        normalized_score = IsolationForest.forest_normalized_score(forest, sample)
+        normalized_score = IsolationForest.score_sample_against_forest_normalized(forest, sample)
         avg_control_set_score = avg_control_set_score + score
         avg_control_set_normalized_score = avg_control_set_normalized_score + normalized_score
     end
@@ -104,7 +107,7 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
 
         # Run a test with the sample that doesn't contain outliers.
         score = IsolationForest.score_sample_against_forest(forest, sample)
-        normalized_score = IsolationForest.forest_normalized_score(forest, sample)
+        normalized_score = IsolationForest.score_sample_against_forest_normalized(forest, sample)
         avg_outlier_set_score = avg_outlier_set_score + score
         avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score
     end
@@ -152,6 +155,30 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
 
     # Create the forest.
     IsolationForest.create_forest(forest)
+
+    # Use each test sample.
+    for test_sample in test_samples
+        score = IsolationForest.score_sample_against_forest(forest, test_sample)
+        normalized_score = IsolationForest.score_sample_against_forest_normalized(forest, test_sample)
+        if training_class_name == test_sample.name
+            avg_control_set_score = avg_control_set_score + score
+            avg_control_set_normalized_score = avg_control_set_normalized_score + normalized_score
+            num_control_tests = num_control_tests + 1
+        else
+            avg_outlier_set_score = avg_outlier_set_score + score
+            avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score
+            num_outlier_tests = num_outlier_tests + 1
+        end
+
+        if num_control_tests > 0
+            avg_control_set_score = avg_control_set_score / num_control_tests
+            avg_control_set_normalized_score = avg_control_set_normalized_score / num_control_tests
+        end
+        if num_outlier_tests > 0
+            avg_outlier_set_score = avg_outlier_set_score / num_outlier_tests
+            avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_outlier_tests
+        end
+    end
 
     # Compute the elapsed time.
     elapsed_time = now() - start_time

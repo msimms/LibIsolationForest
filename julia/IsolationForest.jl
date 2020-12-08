@@ -71,10 +71,10 @@ function add_sample_to_forest(forest::Forest, sample::Sample)
 end
 
 # Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
-function create_tree(forest::Forest, feature_values::Array, depth::UInt64)
+function create_tree(forest::Forest, feature_values::Dict, depth::UInt64)
 
     # Sanity check
-    feature_values_len = len(feature_values)
+    feature_values_len = length(feature_values)
     if feature_values_len <= 1
         return Nothing
     end
@@ -86,7 +86,7 @@ function create_tree(forest::Forest, feature_values::Array, depth::UInt64)
 
     # Randomly select a feature.
     selected_feature_index = rand(1:feature_values_len)
-    selected_feature_name = keys(forest.feature_values)[selected_feature_index]
+    selected_feature_name = keys(forest.featureValues)[selected_feature_index]
 
     # Randomly select a split value.
     feature_value_set = forest.featureValues[selected_feature_name]
@@ -122,7 +122,9 @@ end
 # Creates a forest containing the number of trees specified to the constructor.
 function create_forest(forest::Forest)
     for i = 1:forest.numTrees
-#        push!(forest.tree, tree)
+        temp_feature_values = deepcopy(forest.featureValues)
+        tree = create_tree(forest, temp_feature_values, UInt64(0))
+        push!(forest.trees, tree)
     end
 end
 
@@ -187,7 +189,13 @@ end
 
 # Scores the sample against the entire forest of trees. Result is normalized so that values
 # close to 1 indicate anomalies and values close to zero indicate normal values.
-function forest_normalized_score(forest::Forest, sample::Sample)
+function H(i)
+    return log(i) + 0.5772156649
+end
+function C(n)
+    return 2 * H(n - 1) - (2 * (n - 1) / n)
+end
+function score_sample_against_forest_normalized(forest::Forest, sample::Sample)
 
     # Compute the average path length for all valid trees.
     num_trees = 0
@@ -208,6 +216,8 @@ function forest_normalized_score(forest::Forest, sample::Sample)
     # Normalize, per the original paper.
     score = 0.0
     if num_trees > 1.0
+        exponent = -1.0 * (avg_path_len / C(num_trees))
+        score = 2 ^ exponent
     end
 
     return score
