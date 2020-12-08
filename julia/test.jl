@@ -31,7 +31,7 @@ Pkg.add("Dates")
 using Dates
 
 function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_samples::Int64, num_tests::Int64)
-    forest = IsolationForest.Forest(num_trees, sub_sampling_size, [], [])
+    forest = IsolationForest.Forest(num_trees, sub_sampling_size, Dict(), [])
 
     # Note the time at which the test began.
     start_time = now()
@@ -43,10 +43,10 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
         sample_name = string("Training Sample ", i)
         sample = IsolationForest.Sample(sample_name, Dict())
 
-        x = rand(Int, (0, 25))
-        y = rand(Int, (0, 25))
+        x = rand(0:25)
+        y = rand(0:25)
 
-        features = Dict([("x", x), ("y", y)])
+        features = Dict("x" => x, "y" => y)
         IsolationForest.add_features_to_sample(sample, features)
         IsolationForest.add_sample_to_forest(forest, sample)
 
@@ -64,10 +64,10 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
         sample_name = string("Normal Sample ", i)
         sample = IsolationForest.Sample(sample_name, Dict())
 
-        x = rand(Int, (0, 25))
-        y = rand(Int, (0, 25))
+        x = rand(0:25)
+        y = rand(0:25)
 
-        features = Dict([("x", x), ("y", y)])
+        features = Dict("x" => x, "y" => y)
         IsolationForest.add_features_to_sample(sample, features)
 
         # So we can graph this later.
@@ -92,10 +92,10 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
         sample_name = string("Outlier Sample ", i)
         sample = IsolationForest.Sample(sample_name, Dict())
 
-        x = rand(Int, (20, 45))
-        y = rand(Int, (20, 45))
+        x = rand(20:45)
+        y = rand(20:45)
 
-        features = Dict([("x", x), ("y", y)])
+        features = Dict("x" => x, "y" => y)
         IsolationForest.add_features_to_sample(sample, features)
 
         # So we can graph this later.
@@ -118,7 +118,7 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
 end
 
 function test_iris(num_trees::Int64, sub_sampling_size::Int64)
-    forest = IsolationForest.Forest(num_trees, sub_sampling_size, [], [])
+    forest = IsolationForest.Forest(num_trees, sub_sampling_size, Dict(), [])
 
     avg_control_set_score = 0.0
     avg_outlier_set_score = 0.0
@@ -130,21 +130,28 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
     # Note the time at which the test began.
     start_time = now()
 
+    data_file_name = realpath(joinpath(dirname(@__FILE__), "..", "data", "iris.data.txt"))
+    data = CSV.read(data_file_name)
+
+    training_class_name = "Iris-setosa"
+    test_samples = []
+
+    sl = data[1]
+    sw = data[2]
+    pl = data[3]
+    pw = data[4]
+    names = data[5]
+
+    # Each row in the file represents one sample. We'll use some for training and save some for test.
+    for i = 1:length(names)
+        features = Dict("sepal length cm" => sl[i], "sepal width cm" => sw[i], "petal length cm" => pl[i], "petal width cm" => pw[i], "name" => names[i])
+        sample = IsolationForest.Sample("Iris Data", features)
+    end
 
     # Compute the elapsed time.
     elapsed_time = now() - start_time
 
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
-end
-
-function read_iris_data(fileName::String)
-    data = []
-    data = CSV.read(fileName)
-    ts = data[1]
-    x = data[2]
-    y = data[3]
-    z = data[4]
-    ts, x, y, z
 end
 
 # Parses the command line arguments
@@ -171,7 +178,7 @@ println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)
 println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
-println("Total time for Test 1: ", elapsed_time, ".")
+println("Total time for Test 1: ", elapsed_time, ".\n")
 
 println("Test 2")
 println("------")
@@ -180,7 +187,7 @@ println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)
 println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
-println("Total time for Test 2: ", elapsed_time, ".")
+println("Total time for Test 2: ", elapsed_time, ".\n")
 
 println("Test 3 (Iris Test)")
 println("------------------")
@@ -189,4 +196,4 @@ println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)
 println("Average of normalized outlier test samples: ", avg_outlier_set_normalized_score)
-println("Total time for Test 3 (Iris Data): ", elapsed_time, ".")
+println("Total time for Test 3 (Iris Data): ", elapsed_time, ".\n")

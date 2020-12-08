@@ -40,31 +40,69 @@ end
 mutable struct Forest
     numTrees::UInt64
     subSamplingSize::UInt64
-    featureValues::Array
+    featureValues::Dict # Dictionary that maps feature names to a sorted array of feature values
     trees::Array
 end
 
 # Adds the features to the specified sample.
 function add_features_to_sample(sample::Sample, features::Dict)
-    sample.features = features
+    merge!(sample.features, features)
 end
 
 # Adds each of the sample's features to the list of known features with the corresponding set of unique values.
 function add_sample_to_forest(forest::Forest, sample::Sample)
 
     # We don't store the sample directly, just the features.
-    for feature in sample.features
+    for feature_name in keys(sample.features)
+        feature_value = sample.features[feature_name] # Value to insert
+
+        try
+            existing_feature_values = forest.featureValues[feature_name]
+            push!(existing_feature_values, feature_value)
+            sort(existing_feature_values)
+        catch error
+            if isa(error, KeyError)
+                existing_feature_values = []
+                push!(existing_feature_values, feature_value)
+                forest.featureValues[feature_name] = existing_feature_values
+            end
+        end
     end
 end
 
 # Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
-function create_tree(feature_values::Array, depth::UInt64)
+function create_tree(forest::Forest, feature_values::Array, depth::UInt64)
 
     # Sanity check
     feature_values_len = len(feature_values)
     if feature_values_len <= 1
         return Nothing
     end
+
+    # If we've exceeded the maximum desired depth, then stop.
+    if (forest.subSamplingSize > 0) && (depth >= forest.subSamplingSize)
+        return Nothing
+    end
+
+    # Randomly select a feature.
+    selected_feature_index = rand(1:feature_values_len)
+    selected_feature_name = keys(forest.feature_values)[selected_feature_index]
+
+    # Randomly select a split value.
+    feature_value_set = forest.feature_values[selected_feature_name]
+    feature_value_set_len = length(feature_value_set)
+    if feature_value_set_len <= 1
+        return Nothing
+    end
+    split_value_index = rand(0:feature_value_set_len - 1)
+    split_value = feature_value_set[split_value_index]
+
+    # Create a tree node to hold the split value.
+    tree = Node(selected_feature_name, split_value, nothing, nothing)
+
+    # Create two versions of the feature value set that we just used,
+    # one for the left side of the tree and one for the right.
+    temp_feature_values = forest.feature_values
 end
 
 # Scores the sample against the specified tree.
