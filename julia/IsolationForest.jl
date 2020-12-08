@@ -89,7 +89,7 @@ function create_tree(forest::Forest, feature_values::Array, depth::UInt64)
     selected_feature_name = keys(forest.feature_values)[selected_feature_index]
 
     # Randomly select a split value.
-    feature_value_set = forest.feature_values[selected_feature_name]
+    feature_value_set = forest.featureValues[selected_feature_name]
     feature_value_set_len = length(feature_value_set)
     if feature_value_set_len <= 1
         return Nothing
@@ -103,6 +103,27 @@ function create_tree(forest::Forest, feature_values::Array, depth::UInt64)
     # Create two versions of the feature value set that we just used,
     # one for the left side of the tree and one for the right.
     temp_feature_values = forest.feature_values
+
+    # Create the left subtree.
+    left_features = feature_value_set[1:split_value_index]
+    temp_feature_values[selected_feature_name] = left_features
+    tree.left = IsolationForest.create_tree(forest, temp_feature_values, depth + 1)
+
+    # Create the right subtree.
+    if split_value_index + 1 < feature_value_set_len
+        right_features = feature_value_set[split_value_index + 1:feature_value_set_len]
+        temp_feature_values[selected_feature_name] = right_features
+        tree.right = self.create_tree(temp_feature_values, depth + 1)
+    end
+
+    return tree
+end
+
+# Creates a forest containing the number of trees specified to the constructor.
+function create_forest(forest::Forest)
+    for i = 1:forest.numTrees
+#        push!(forest.tree, tree)
+    end
 end
 
 # Scores the sample against the specified tree.

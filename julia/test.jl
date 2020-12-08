@@ -143,10 +143,15 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
     names = data[5]
 
     # Each row in the file represents one sample. We'll use some for training and save some for test.
+    training_class_name = "Iris-setosa"
+    test_samples = []
     for i = 1:length(names)
         features = Dict("sepal length cm" => sl[i], "sepal width cm" => sw[i], "petal length cm" => pl[i], "petal width cm" => pw[i], "name" => names[i])
         sample = IsolationForest.Sample("Iris Data", features)
     end
+
+    # Create the forest.
+    IsolationForest.create_forest(forest)
 
     # Compute the elapsed time.
     elapsed_time = now() - start_time
