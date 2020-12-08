@@ -165,7 +165,7 @@ def test_iris(num_trees, sub_sampling_size):
                 sample = IsolationForest.Sample(row[4])
                 sample.add_features(features)
 
-                if random.randint(0,10) > 0 and row[4] == training_class_name: # Use for training
+                if random.randint(0,10) > 5 and row[4] == training_class_name: # Use for training
                     forest.add_sample(sample)
                 else: # Save for test
                     test_samples.append(sample)
