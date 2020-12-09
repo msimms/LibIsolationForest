@@ -26,26 +26,26 @@ module IsolationForest
 mutable struct Node
     featureName::String
     splitValue::UInt64
-    left::Node
-    right::Node
+    left::Union{Node, Nothing}
+    right::Union{Node, Nothing}
 end
 
 # This struct represents a sample. Each sample has a name and list of features.
 mutable struct Sample
     name::String
-    features::Dict
+    features::Dict{String,Float64}
 end
 
 # Isolation Forest.
 mutable struct Forest
     numTrees::UInt64
     subSamplingSize::UInt64
-    featureValues::Dict # Dictionary that maps feature names to a sorted array of feature values
+    featureValues::Dict{String,Array} # Dictionary that maps feature names to a sorted array of feature values
     trees::Array
 end
 
 # Adds the features to the specified sample.
-function add_features_to_sample(sample::Sample, features::Dict)
+function add_features_to_sample(sample::Sample, features::Dict{String,Float64})
     merge!(sample.features, features)
 end
 
@@ -71,7 +71,7 @@ function add_sample_to_forest(forest::Forest, sample::Sample)
 end
 
 # Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
-function create_tree(forest::Forest, feature_values::Dict, depth::UInt64)
+function create_tree(forest::Forest, feature_values::Dict{String,Array}, depth::UInt64)
 
     # Sanity check
     feature_values_len = length(feature_values)
@@ -86,7 +86,8 @@ function create_tree(forest::Forest, feature_values::Dict, depth::UInt64)
 
     # Randomly select a feature.
     selected_feature_index = rand(1:feature_values_len)
-    selected_feature_name = keys(forest.featureValues)[selected_feature_index]
+    all_feature_names = collect(keys(forest.featureValues))
+    selected_feature_name = all_feature_names[selected_feature_index]
 
     # Randomly select a split value.
     feature_value_set = forest.featureValues[selected_feature_name]
@@ -94,11 +95,11 @@ function create_tree(forest::Forest, feature_values::Dict, depth::UInt64)
     if feature_value_set_len <= 1
         return Nothing
     end
-    split_value_index = rand(0:feature_value_set_len - 1)
+    split_value_index = rand(1:feature_value_set_len)
     split_value = feature_value_set[split_value_index]
 
     # Create a tree node to hold the split value.
-    tree = Node(selected_feature_name, split_value, nothing, nothing)
+    tree = Node(selected_feature_name, split_value, Nothing, Nothing)
 
     # Create two versions of the feature value set that we just used,
     # one for the left side of the tree and one for the right.
@@ -113,7 +114,7 @@ function create_tree(forest::Forest, feature_values::Dict, depth::UInt64)
     if split_value_index + 1 < feature_value_set_len
         right_features = feature_value_set[split_value_index + 1:feature_value_set_len]
         temp_feature_values[selected_feature_name] = right_features
-        tree.right = self.create_tree(temp_feature_values, depth + 1)
+        tree.right = IsolationForest.create_tree(forest, temp_feature_values, depth + 1)
     end
 
     return tree
