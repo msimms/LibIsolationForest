@@ -26,8 +26,8 @@ module IsolationForest
 mutable struct Node
     featureName::String
     splitValue::UInt64
-    left::Union{Node, Nothing}
-    right::Union{Node, Nothing}
+    left::Any
+    right::Any
 end
 
 # This struct represents a sample. Each sample has a name and list of features.
@@ -103,7 +103,7 @@ function create_tree(forest::Forest, feature_values::Dict{String,Array}, depth::
 
     # Create two versions of the feature value set that we just used,
     # one for the left side of the tree and one for the right.
-    temp_feature_values = forest.feature_values
+    temp_feature_values = forest.featureValues
 
     # Create the left subtree.
     left_features = feature_value_set[1:split_value_index]
@@ -134,31 +134,31 @@ function score_sample_against_tree(tree::Node, sample::Sample)
     depth = 0.0
     current_node = tree
 
-    while current_node != missing
+    while current_node != Nothing
         found_feature = false
 
         # Find the next feature in the sample.
         for current_feature in sample.features
-            current_feature_name = list(current_feature)[0]
+            current_feature_name = current_feature.first
 
             # If the current node has the feature in question.
-            if current_feature_name == current_node.feature_name
-                current_feature_value = list(current_feature.values())[0]
-                if current_feature_value < current_node.split_value
+            if current_feature_name == current_node.featureName
+                current_feature_value = current_feature.second
+                if current_feature_value < current_node.splitValue
                     current_node = current_node.left
                 else
                     current_node = current_node.right
                 end
 
                 depth = depth + 1.0
-                found_feature = True
+                found_feature = true
                 break
             end
         end
 
         # If the tree contained a feature not in the sample then take
         # both sides of the tree and average the scores together.
-        if not found_feature
+        if found_feature == false
             left_depth = depth + score_sample_against_tree(sample, current_node.left)
             right_depth = depth + score_sample_against_tree(sample, current_node.right)
             return (left_depth + right_depth) / 2.0
