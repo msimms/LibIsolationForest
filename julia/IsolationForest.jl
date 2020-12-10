@@ -25,7 +25,7 @@ module IsolationForest
 # Tree node, used internally.
 mutable struct Node
     featureName::String
-    splitValue::UInt64
+    splitValue::Float64
     left::Any
     right::Any
 end
