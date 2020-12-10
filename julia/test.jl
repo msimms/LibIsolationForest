@@ -149,8 +149,16 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
     training_class_name = "Iris-setosa"
     test_samples = []
     for i = 1:length(names)
-        features = Dict("sepal length cm" => sl[i], "sepal width cm" => sw[i], "petal length cm" => pl[i], "petal width cm" => pw[i], "name" => names[i])
-        sample = IsolationForest.Sample("Iris Data", features)
+        if !ismissing(names[i])
+            features = Dict("sepal length cm" => sl[i], "sepal width cm" => sw[i], "petal length cm" => pl[i], "petal width cm" => pw[i])
+            sample = IsolationForest.Sample(names[i], features)
+
+            if rand(0:10) > 5 && names[i] == training_class_name # Use for training
+                IsolationForest.add_sample_to_forest(forest, sample)
+            else # Save for test
+                push!(test_samples, sample)
+            end
+        end
     end
 
     # Create the forest.
