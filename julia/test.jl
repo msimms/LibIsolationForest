@@ -95,8 +95,8 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
         sample_name = string("Outlier Sample ", i)
         sample = IsolationForest.Sample(sample_name, Dict())
 
-        x = rand(20:45)
-        y = rand(20:45)
+        x = rand(20.0:45.0)
+        y = rand(20.0:45.0)
 
         features = Dict("x" => x, "y" => y)
         IsolationForest.add_features_to_sample(sample, features)

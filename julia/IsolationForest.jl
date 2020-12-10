@@ -125,7 +125,9 @@ function create_forest(forest::Forest)
     for i = 1:forest.numTrees
         temp_feature_values = deepcopy(forest.featureValues)
         tree = create_tree(forest, temp_feature_values, UInt64(0))
-        push!(forest.trees, tree)
+        if tree != Nothing
+            push!(forest.trees, tree)
+        end
     end
 end
 
