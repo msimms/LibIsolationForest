@@ -165,7 +165,7 @@ def test_iris(num_trees, sub_sampling_size):
                 sample = IsolationForest.Sample(row[4])
                 sample.add_features(features)
 
-                if random.randint(0,10) > 0 and row[4] == training_class_name: # Use for training
+                if random.randint(0,10) > 5 and row[4] == training_class_name: # Use for training
                     forest.add_sample(sample)
                 else: # Save for test
                     test_samples.append(sample)
@@ -237,7 +237,7 @@ def main():
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)
     print("Average of normalized outlier test samples: %.4f" % avg_outlier_set_normalized_score)
-    print("Total time for Test 2: %.4f" % elapsed_time + " seconds.")
+    print("Total time for Test 3 (Iris Data): %.4f" % elapsed_time + " seconds.")
 
 if __name__ == "__main__":
     main()
