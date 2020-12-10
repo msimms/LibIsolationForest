@@ -4,7 +4,7 @@
 
 ## Description
 
-This project contains Rust, C++, and python implementations of the Isolation Forest algorithm. Isolation Forest is an anomaly detection algorithm based around a collection of randomly generated decision trees. For a full description of the algorithm, consult the original paper by the algorithm's creators:
+This project contains Rust, C++, Julia, and python implementations of the Isolation Forest algorithm. Isolation Forest is an anomaly detection algorithm based around a collection of randomly generated decision trees. For a full description of the algorithm, consult the original paper by the algorithm's creators:
 
 https://cs.nju.edu.cn/zhouzh/zhouzh.files/publication/icdm08b.pdf
 
@@ -54,6 +54,10 @@ An example of how to use the Rust version of the library can be found in `main.r
 ## C++ Example
 
 An example of how to use the C++ version of the library can be found in `main.cpp`. As the library matures, I'll add more test examples to this file.
+
+## Julia Example
+
+An example of how to use the Julia version of the library can be found in `test.jl`. As the library matures, I'll add more test examples to this file.
 
 ## Version History
 
