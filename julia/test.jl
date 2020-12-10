@@ -194,22 +194,6 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 end
 
-# Parses the command line arguments
-function parse_commandline()
-    s = ArgParseSettings()
-
-    @add_arg_table s begin
-        "--csv"
-            help = "another option with an argument"
-            arg_type = String
-            default = "data/10_pullups.csv"
-    end
-
-    return parse_args(s)
-end
-
-# Parse command line options.
-parsed_args = parse_commandline()
 
 println("Test 1")
 println("------")
