@@ -52,5 +52,5 @@ Cargo.lock
 **/*.rs.bk
 
 # Test output
-python2/isolationforest_test.html
-python3/isolationforest_test.html
+python2/isolationforest_*.html
+python3/isolationforest_*.html

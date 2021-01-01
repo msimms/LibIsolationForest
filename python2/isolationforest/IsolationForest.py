@@ -38,14 +38,14 @@ class Sample(object):
 
     def __init__(self, name):
         self.name = name
-        self.features = []
+        self.features = {}
 
     def add_features(self, features):
         for feature in features:
             self.add_feature(feature)
 
     def add_feature(self, feature):
-        self.features.append(feature)
+        self.features.update(feature)
 
 class Forest(object):
     """Isolation Forest implementation."""
@@ -61,9 +61,8 @@ class Forest(object):
            with the corresponding set of unique values."""
 
         # We don't store the sample directly, just the features.
-        for feature in sample.features:
-            feature_name = feature.keys()[0]
-            feature_value = feature.values()[0]
+        for feature_name in sample.features:
+            feature_value = sample.features[feature_name]
             if feature_name in self.feature_values:
                 self.feature_values[feature_name].append(feature_value)
                 self.feature_values[feature_name].sort()
@@ -131,12 +130,11 @@ class Forest(object):
             found_feature = False
 
             # Find the next feature in the sample.
-            for current_feature in sample.features:
-                current_feature_name = current_feature.keys()[0]
+            for current_feature_name in sample.features:
 
                 # If the current node has the feature in question.
                 if current_feature_name == current_node.feature_name:
-                    current_feature_value = current_feature.values()[0]
+                    current_feature_value = sample.features[current_feature_name]
                     if current_feature_value < current_node.split_value:
                         current_node = current_node.left
                     else:

@@ -30,7 +30,7 @@ import sys
 import time
 from isolationforest import IsolationForest
 
-def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, plot):
+def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, plot, plot_filename):
     forest = IsolationForest.Forest(num_trees, sub_sampling_size)
 
     # Note the time at which the test began.
@@ -126,11 +126,16 @@ def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, p
         normal_trace = go.Scatter(x=normal_x, y=normal_y, mode='markers', name='normal')
         outlier_trace = go.Scatter(x=outlier_x, y=outlier_y, mode='markers', name='outlier')
         data = [training_trace, normal_trace, outlier_trace]
-        plotly.offline.plot(data, filename='isolationforest_test.html')
+        plotly.offline.plot(data, filename=plot_filename)
     
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 
-def test_iris(num_trees, sub_sampling_size):
+def test_iris(num_trees, sub_sampling_size, plot):
+    FEATURE_SEPAL_LENGTH_CM = "sepal length cm"
+    FEATURE_SEPAL_WIDTH_CM = "sepal width cm"
+    FEATURE_PETAL_LENGTH_CM = "petal length cm"
+    FEATURE_PETAL_WIDTH_CM = "petal width cm"
+
     forest = IsolationForest.Forest(num_trees, sub_sampling_size)
 
     avg_control_set_score = 0.0
@@ -148,25 +153,30 @@ def test_iris(num_trees, sub_sampling_size):
 
         with open(data_file_name) as csv_file:
             training_class_name = 'Iris-setosa'
+            training_samples = []
             test_samples = []
 
             # Each row in the file represents one sample. We'll use some for training and save some for test.
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
+
+                # Check for junk.
                 if len(row) < 5:
                     continue
 
                 features = []
-                features.append({"sepal length cm": float(row[0])})
-                features.append({"sepal width cm": float(row[1])})
-                features.append({"petal length cm": float(row[2])})
-                features.append({"petal width cm": float(row[3])})
+                features.append({FEATURE_SEPAL_LENGTH_CM: float(row[0])})
+                features.append({FEATURE_SEPAL_WIDTH_CM: float(row[1])})
+                features.append({FEATURE_PETAL_LENGTH_CM: float(row[2])})
+                features.append({FEATURE_PETAL_WIDTH_CM: float(row[3])})
 
                 sample = IsolationForest.Sample(row[4])
                 sample.add_features(features)
 
+                # Randomly split the samples into training and test samples.
                 if random.randint(0,10) > 5 and row[4] == training_class_name: # Use for training
                     forest.add_sample(sample)
+                    training_samples.append(sample)
                 else: # Save for test
                     test_samples.append(sample)
 
@@ -186,6 +196,7 @@ def test_iris(num_trees, sub_sampling_size):
                     avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score
                     num_outlier_tests = num_outlier_tests + 1
 
+            # Compute statistics.
             if num_control_tests > 0:
                 avg_control_set_score = avg_control_set_score / num_control_tests
                 avg_control_set_normalized_score = avg_control_set_normalized_score / num_control_tests
@@ -193,11 +204,33 @@ def test_iris(num_trees, sub_sampling_size):
                 avg_outlier_set_score = avg_outlier_set_score / num_outlier_tests
                 avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_outlier_tests
 
+            # Compute the elapsed time.
+            elapsed_time = time.time() - start_time
+
+            # Create a trace.
+            if plot:
+                import plotly
+                import plotly.graph_objs as go
+
+                training_x = []
+                training_y = []
+                test_x = []
+                test_y = []
+
+                for sample in training_samples:
+                    training_x.append(sample.features[FEATURE_SEPAL_LENGTH_CM])
+                    training_y.append(sample.features[FEATURE_SEPAL_WIDTH_CM])
+                for sample in test_samples:
+                    test_x.append(sample.features[FEATURE_SEPAL_LENGTH_CM])
+                    test_y.append(sample.features[FEATURE_SEPAL_WIDTH_CM])
+
+                training_trace = go.Scatter(x=training_x, y=training_y, mode='markers', name='training')
+                test_trace = go.Scatter(x=test_x, y=test_y, mode='markers', name='test')
+                data = [training_trace, test_trace]
+                plotly.offline.plot(data, filename='isolationforest_test_iris.html')
+
     else:
         print("Could not find " + data_file_name)
-
-    # Compute the elapsed time.
-    elapsed_time = time.time() - start_time
 
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 
@@ -214,7 +247,7 @@ def main():
 
     print("Test 1")
     print("------")
-    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(10, 10, 100, 100, args.plot)
+    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(10, 10, 100, 100, args.plot, 'isolationforest_test_1.html')
     print("Average of control test samples: %.4f" % avg_control_set_score)
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)
@@ -223,7 +256,7 @@ def main():
 
     print("Test 2")
     print("------")
-    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(100, 100, 1000, 100, args.plot)
+    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(100, 100, 1000, 100, args.plot, 'isolationforest_test_2.html')
     print("Average of control test samples: %.4f" % avg_control_set_score)
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)
@@ -232,7 +265,7 @@ def main():
 
     print("Test 3 (Iris Test)")
     print("------------------")
-    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50)
+    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50, args.plot)
     print("Average of control test samples: %.4f" % avg_control_set_score)
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)
