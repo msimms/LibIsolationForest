@@ -155,6 +155,7 @@ def test_iris(num_trees, sub_sampling_size, plot, dump, load):
     # Note the time at which the test began.
     start_time = time.time()
 
+    # Find and open the iris data file.
     data_file_name = os.path.realpath(os.path.join(os.path.realpath(__file__), "..", "..", "data", "iris.data.txt"))
     if os.path.isfile(data_file_name):
 
@@ -237,7 +238,7 @@ def test_iris(num_trees, sub_sampling_size, plot, dump, load):
                 data = [training_trace, test_trace]
                 plotly.offline.plot(data, filename='isolationforest_test_iris.html')
 
-            # Dump the training data.
+            # Write the forest structure to disk.
             if dump:
                 json_data = forest.dump()
                 with open('isolationforest_test_iris.json', 'wt') as json_file:

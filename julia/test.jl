@@ -29,8 +29,10 @@ Pkg.add("CSV")
 using CSV
 Pkg.add("Dates")
 using Dates
+Pkg.add("JSON")
+using JSON
 
-function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_samples::Int64, num_tests::Int64)
+function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_samples::Int64, num_tests::Int64, plot::Bool)
     forest = IsolationForest.Forest(num_trees, sub_sampling_size, Dict(), [])
 
     # Note the time at which the test began.
@@ -117,10 +119,14 @@ function test_random(num_trees::Int64, sub_sampling_size::Int64, num_training_sa
     # Compute the elapsed time.
     elapsed_time = now() - start_time
 
+    # Create a plot.
+    if plot
+    end
+
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 end
 
-function test_iris(num_trees::Int64, sub_sampling_size::Int64)
+function test_iris(num_trees::Int64, sub_sampling_size::Int64, plot::Bool, dump::Bool, load::Bool)
     forest = IsolationForest.Forest(num_trees, sub_sampling_size, Dict(), [])
 
     avg_control_set_score = 0.0
@@ -133,6 +139,7 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
     # Note the time at which the test began.
     start_time = now()
 
+    # Find and open the iris data file.
     data_file_name = realpath(joinpath(dirname(@__FILE__), "..", "data", "iris.data.txt"))
     data = CSV.read(data_file_name)
 
@@ -177,27 +184,63 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64)
             avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score
             num_outlier_tests = num_outlier_tests + 1
         end
+    end
 
-        if num_control_tests > 0
-            avg_control_set_score = avg_control_set_score / num_control_tests
-            avg_control_set_normalized_score = avg_control_set_normalized_score / num_control_tests
-        end
-        if num_outlier_tests > 0
-            avg_outlier_set_score = avg_outlier_set_score / num_outlier_tests
-            avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_outlier_tests
-        end
+    # Compute statistics.
+    if num_control_tests > 0
+        avg_control_set_score = avg_control_set_score / num_control_tests
+        avg_control_set_normalized_score = avg_control_set_normalized_score / num_control_tests
+    end
+    if num_outlier_tests > 0
+        avg_outlier_set_score = avg_outlier_set_score / num_outlier_tests
+        avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_outlier_tests
     end
 
     # Compute the elapsed time.
     elapsed_time = now() - start_time
 
+    # Create a plot.
+    if plot
+    end
+
+    # Write the forest structure to disk.
+    if dump
+        json_data = IsolationForest.dump(forest)
+        open("isolationforest_test_iris.json", "w") do json_file
+            JSON.print(json_file, json_data)
+        end 
+    end
+
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 end
 
+# Parses the command line arguments
+function parse_commandline()
+    s = ArgParseSettings()
+
+    @add_arg_table s begin
+        "--plot"
+            help = "Plots the test data"
+            arg_type = Bool
+            default = false
+        "--dump"
+            help = "Dumps the forest data to a file"
+            arg_type = Bool
+            default = true
+        "--load"
+            help = "Loads the forest data from a file"
+            arg_type = Bool
+            default = false
+    end
+
+    return parse_args(s)
+end
+
+parsed_args = parse_commandline()
 
 println("Test 1")
 println("------")
-avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(10, 10, 100, 100)
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(10, 10, 100, 100, parsed_args["plot"])
 println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)
@@ -206,7 +249,7 @@ println("Total time for Test 1: ", elapsed_time, ".\n")
 
 println("Test 2")
 println("------")
-avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(100, 100, 1000, 100)
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(100, 100, 1000, 100, parsed_args["plot"])
 println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)
@@ -215,7 +258,7 @@ println("Total time for Test 2: ", elapsed_time, ".\n")
 
 println("Test 3 (Iris Test)")
 println("------------------")
-avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50)
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50, parsed_args["plot"], parsed_args["dump"], parsed_args["load"])
 println("Average of control test samples: ", avg_control_set_score)
 println("Average of normalized control test samples: ", avg_control_set_normalized_score)
 println("Average of outlier test samples: ", avg_outlier_set_score)

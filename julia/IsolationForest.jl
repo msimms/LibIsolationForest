@@ -60,6 +60,7 @@ function add_sample_to_forest(forest::Forest, sample::Sample)
             existing_feature_values = forest.featureValues[feature_name]
             push!(existing_feature_values, feature_value)
             sort(existing_feature_values)
+            forest.featureValues[feature_name] = existing_feature_values
         catch error
             if isa(error, KeyError)
                 existing_feature_values = []
@@ -86,11 +87,11 @@ function create_tree(forest::Forest, feature_values::Dict{String,Array}, depth::
 
     # Randomly select a feature.
     selected_feature_index = rand(1:feature_values_len)
-    all_feature_names = collect(keys(forest.featureValues))
+    all_feature_names = collect(keys(feature_values))
     selected_feature_name = all_feature_names[selected_feature_index]
 
     # Randomly select a split value.
-    feature_value_set = forest.featureValues[selected_feature_name]
+    feature_value_set = feature_values[selected_feature_name]
     feature_value_set_len = length(feature_value_set)
     if feature_value_set_len <= 1
         return Nothing
@@ -103,7 +104,7 @@ function create_tree(forest::Forest, feature_values::Dict{String,Array}, depth::
 
     # Create two versions of the feature value set that we just used,
     # one for the left side of the tree and one for the right.
-    temp_feature_values = forest.featureValues
+    temp_feature_values = feature_values
 
     # Create the left subtree.
     left_features = feature_value_set[1:split_value_index]
@@ -224,6 +225,86 @@ function score_sample_against_forest_normalized(forest::Forest, sample::Sample)
     end
 
     return score
+end
+
+# Destroys a single tree.
+function destroy_tree(tree::Node)
+end
+
+# Destroys the entire forest of trees.
+function destroy()
+    for tree in self.trees
+        self.destroy_tree(tree)
+    end
+end
+
+# Returns the specified node as a dictionary object.
+function dump_node(node::Node)
+    data = Dict()
+    if node != Nothing
+        data["Feature Name"] = node.featureName
+        data["Split Value"] = node.splitValue
+        if node.left == Nothing
+            data["Left"] = Dict()
+        else
+            data["Left"] = dump_node(node.left)
+        end
+        if node.right == Nothing
+            data["Right"] = Dict()
+        else
+            data["Right"] = dump_node(node.right)
+        end
+    end
+    return data
+end
+
+# Loads/creates a node from a JSON object.
+function load_node(data::Dict)
+    if "Feature Name" not in data
+        return Nothing
+    end
+    node = Node(data["Feature Name"], data["Split Value"])
+    node.left = load_node(data["Left"])
+    node.right = load_node(data["Right"])
+    return node
+end
+
+# Returns the specified tree as a dictionary object.
+function dump_tree(tree::Node)
+    data = dump_node(tree)
+    return data
+end
+
+# Loads/creates a tree from a dictionary object.
+function load_tree(forest::Forest, data::Dict)
+    tree = load_node(data)
+    if tree
+        push!(forest.trees, tree)
+    end
+end
+
+# Returns the forest as a JSON object.
+function dump(forest::Forest)
+    data = Dict()
+    data["Sub Sampling Size"] = forest.subSamplingSize
+    data["Feature Values"] = forest.featureValues
+    tree_data = []
+    for tree in forest.trees
+        push!(tree_data, dump_tree(tree))
+    end
+    data["Trees"] = tree_data
+    return data
+end
+
+# Loads the forest from a JSON object.
+function load(data::Dict)
+    forest = IsolationForest.Forest(0, 0, Dict(), [])
+    forest.subSamplingSize = data["Sub Sampling Size"]
+    forest.featureValues = data["Feature Values"]
+    for tree_data in data["Trees"]
+        load_tree(forest, tree_data)
+    end
+    forest.numTrees = length(trees)
 end
 
 end
