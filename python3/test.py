@@ -130,7 +130,7 @@ def test_random(num_trees, sub_sampling_size, num_training_samples, num_tests, p
     
     return avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time
 
-def test_iris(num_trees, sub_sampling_size, plot):
+def test_iris(num_trees, sub_sampling_size, plot, dump, load):
     FEATURE_SEPAL_LENGTH_CM = "sepal length cm"
     FEATURE_SEPAL_WIDTH_CM = "sepal width cm"
     FEATURE_PETAL_LENGTH_CM = "petal length cm"
@@ -144,6 +144,13 @@ def test_iris(num_trees, sub_sampling_size, plot):
     avg_outlier_set_normalized_score = 0.0
     num_control_tests = 0
     num_outlier_tests = 0
+
+    # Test loading a forest from file.
+    if load:
+        with open('isolationforest_test_iris.json', 'rt') as json_file:
+            json_str = json_file.read()
+            json_data = json.loads(json_str)
+            forest.load(json_data)
 
     # Note the time at which the test began.
     start_time = time.time()
@@ -175,7 +182,8 @@ def test_iris(num_trees, sub_sampling_size, plot):
 
                 # Randomly split the samples into training and test samples.
                 if random.randint(0,10) > 5 and row[4] == training_class_name: # Use for training
-                    forest.add_sample(sample)
+                    if not load: # We loaded the forest from a file, so don't modify it here.
+                        forest.add_sample(sample)
                     training_samples.append(sample)
                 else: # Save for test
                     test_samples.append(sample)
@@ -229,6 +237,12 @@ def test_iris(num_trees, sub_sampling_size, plot):
                 data = [training_trace, test_trace]
                 plotly.offline.plot(data, filename='isolationforest_test_iris.html')
 
+            # Dump the training data.
+            if dump:
+                json_data = forest.dump()
+                with open('isolationforest_test_iris.json', 'wt') as json_file:
+                    json_file.write(json.dumps(json_data))
+
     else:
         print("Could not find " + data_file_name)
 
@@ -238,6 +252,8 @@ def main():
     # Parse command line options.
     parser = argparse.ArgumentParser()
     parser.add_argument("--plot", action="store_true", default=False, help="Plots the test data", required=False)
+    parser.add_argument("--dump", action="store_true", default=False, help="Dumps the forest data to a file", required=False)
+    parser.add_argument("--load", action="store_true", default=False, help="Loads the forest data from a file", required=False)
 
     try:
         args = parser.parse_args()
@@ -265,7 +281,7 @@ def main():
 
     print("Test 3 (Iris Test)")
     print("------------------")
-    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50, args.plot)
+    avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_iris(50, 50, args.plot, args.dump, args.load)
     print("Average of control test samples: %.4f" % avg_control_set_score)
     print("Average of normalized control test samples: %.4f" % avg_control_set_normalized_score)
     print("Average of outlier test samples: %.4f" % avg_outlier_set_score)

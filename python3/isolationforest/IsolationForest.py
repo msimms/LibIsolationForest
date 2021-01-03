@@ -211,20 +211,41 @@ class Forest(object):
             data["Right"] = self.dump_node(node.right)
         return data
 
+    def load_node(self, data):
+        """Loads/creates a node from a JSON object."""
+        if "Feature Name" not in data:
+            return None
+        node = Node(data["Feature Name"], data["Split Value"])
+        node.left = self.load_node(data["Left"])
+        node.right = self.load_node(data["Right"])
+        return node
+
     def dump_tree(self, tree):
         """Returns the specified tree as a dictionary object."""
         data = self.dump_node(tree)
         return data
 
+    def load_tree(self, data):
+        """Loads/creates a tree from a dictionary object."""
+        tree = self.load_node(data)
+        if tree:
+            self.trees.append(tree)
+
     def dump(self):
         """Returns the forest as a JSON object."""
         data = {}
-        tree_index = 0
+        data["Sub Sampling Size"] = self.sub_sampling_size
+        data["Feature Values"] = self.feature_values
+        tree_data = []
         for tree in self.trees:
-            data["Tree " + str(tree_index)] = self.dump_tree(tree)
-            tree_index = tree_index + 1
+            tree_data.append(self.dump_tree(tree))
+        data["Trees"] = tree_data
         return data
 
     def load(self, data):
-        """Loads the forest from the JSON object."""
-        pass
+        """Loads the forest from a JSON object."""
+        self.sub_sampling_size = data["Sub Sampling Size"]
+        self.feature_values = data["Feature Values"]
+        for tree_data in data["Trees"]:
+            self.load_tree(tree_data)
+        self.num_trees = len(self.trees)
