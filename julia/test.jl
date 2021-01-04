@@ -136,6 +136,15 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64, plot::Bool, dump:
     num_control_tests = 0
     num_outlier_tests = 0
 
+    # Test loading a forest from file.
+    if load
+        open("isolationforest_test_iris.json", "r") do json_file
+            json_str = read(json_file, String)
+            json_data = JSON.parse(json_str)
+            forest = IsolationForest.load(json_data)
+        end
+    end
+
     # Note the time at which the test began.
     start_time = now()
 
@@ -161,7 +170,9 @@ function test_iris(num_trees::Int64, sub_sampling_size::Int64, plot::Bool, dump:
             sample = IsolationForest.Sample(names[i], features)
 
             if rand(0:10) > 5 && names[i] == training_class_name # Use for training
-                IsolationForest.add_sample_to_forest(forest, sample)
+                if load == false # We loaded the forest from a file, so don't modify it here.
+                    IsolationForest.add_sample_to_forest(forest, sample)
+                end
             else # Save for test
                 push!(test_samples, sample)
             end
@@ -226,7 +237,7 @@ function parse_commandline()
         "--dump"
             help = "Dumps the forest data to a file"
             arg_type = Bool
-            default = true
+            default = false
         "--load"
             help = "Loads the forest data from a file"
             arg_type = Bool

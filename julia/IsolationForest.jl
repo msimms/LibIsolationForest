@@ -260,13 +260,15 @@ end
 
 # Loads/creates a node from a JSON object.
 function load_node(data::Dict)
-    if "Feature Name" not in data
-        return Nothing
+    try
+        node = Node(data["Feature Name"], data["Split Value"])
+        node.left = load_node(data["Left"])
+        node.right = load_node(data["Right"])
+        return node
+    catch error
     end
-    node = Node(data["Feature Name"], data["Split Value"])
-    node.left = load_node(data["Left"])
-    node.right = load_node(data["Right"])
-    return node
+
+    return Nothing
 end
 
 # Returns the specified tree as a dictionary object.
@@ -278,7 +280,7 @@ end
 # Loads/creates a tree from a dictionary object.
 function load_tree(forest::Forest, data::Dict)
     tree = load_node(data)
-    if tree
+    if tree != Nothing
         push!(forest.trees, tree)
     end
 end
@@ -298,13 +300,14 @@ end
 
 # Loads the forest from a JSON object.
 function load(data::Dict)
-    forest = IsolationForest.Forest(0, 0, Dict(), [])
+    forest = Forest(0, 0, Dict(), [])
     forest.subSamplingSize = data["Sub Sampling Size"]
     forest.featureValues = data["Feature Values"]
     for tree_data in data["Trees"]
         load_tree(forest, tree_data)
     end
-    forest.numTrees = length(trees)
+    forest.numTrees = length(forest.trees)
+    return forest
 end
 
 end
