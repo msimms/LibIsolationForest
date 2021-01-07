@@ -371,23 +371,47 @@ namespace IsolationForest
 	std::string Forest::Dump() const
 	{
 		std::string data = "{";
-		size_t treeIndex = 0;
+		auto featureValuesIter = m_featureValues.begin();
+		auto treeIter = m_trees.begin();
 
-		std::vector<NodePtr>::const_iterator iter = m_trees.begin();
-		while (iter != m_trees.end())
+		data.append("'Sub Sampling Size': ");
+		data.append(std::to_string(this->m_subSamplingSize));
+		data.append(", 'Feature Values': [");
+		while (featureValuesIter != m_featureValues.end())
 		{
-			NodePtr tree = (*iter);
-			std::string treeData = "'Tree ";
+			data.append("'");
+			data.append((*featureValuesIter).first);
+			data.append("': [");
 
-			treeData.append(std::to_string(treeIndex));
-			treeData.append("': ");
-			treeData.append(tree->Dump());
-			++iter;
-			if (iter != m_trees.end())
-				treeData.append(", ");
-			++treeIndex;
-			data.append(treeData);
+			auto valuesIter = (*featureValuesIter).second.begin();
+			while (valuesIter != (*featureValuesIter).second.end())
+			{
+				data.append(std::to_string(*valuesIter));
+				++valuesIter;
+
+				// Last item?
+				if (valuesIter != (*featureValuesIter).second.end())
+					data.append(", ");
+			}
+			++featureValuesIter;
+
+			data.append("]");
+
+			// Last item?
+			if (featureValuesIter != m_featureValues.end())
+				data.append(", ");
 		}
+		data.append("], 'Trees': [");
+		while (treeIter != m_trees.end())
+		{
+			data.append((*treeIter)->Dump());
+			++treeIter;
+			
+			// Last item?
+			if (treeIter != m_trees.end())
+				data.append(", ");
+		}
+		data.append("]");
 		data.append("}");
 		return data;
 	}
