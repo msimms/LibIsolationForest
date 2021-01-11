@@ -21,11 +21,18 @@
 //	SOFTWARE.
 
 extern crate rand;
+extern crate serde;
+extern crate serde_json;
 
 use std::collections::HashMap;
 use rand::distributions::{Distribution, Uniform};
+use self::serde::{
+	ser::{SerializeStruct, Serializer}, Serialize, Deserialize
+};
+
 
 /// Each feature has a name and value.
+#[derive(Serialize, Deserialize)]
 pub struct Feature {
     name: String,
     value: u64,
@@ -43,6 +50,7 @@ pub type FeatureNameToValuesMap = HashMap<String, Uint64Vec>;
 
 /// This class represents a sample.
 /// Each sample has a name and list of features.
+#[derive(Serialize, Deserialize)]
 pub struct Sample {
     features: FeatureList,
 }
@@ -63,6 +71,7 @@ impl Sample {
 }
 
 /// Tree node, used internally.
+#[derive(Serialize, Deserialize)]
 struct Node {
     feature_name: String,
     split_value: u64,
@@ -87,6 +96,19 @@ pub struct Forest {
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
     rng: rand::prelude::ThreadRng,
+}
+
+impl Serialize for Forest {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("Forest", 3)?;
+        s.serialize_field("Sub Sampling Size", &self.sub_sampling_size)?;
+        s.serialize_field("Feature Values", &self.feature_values)?;
+        s.serialize_field("Trees", &self.trees)?;
+        s.end()
+    }
 }
 
 impl Forest {
@@ -301,5 +323,15 @@ impl Forest {
 
         // Normalize, per the original paper.
         score
+    }
+
+    pub fn dump(&self) -> String {
+        let json_str = serde_json::to_string(&self).unwrap();
+        json_str
+    }
+
+    pub fn load(&self, json_str: &String) {
+        let obj = serde_json::from_str(json_str).unwrap();
+        obj
     }
 }

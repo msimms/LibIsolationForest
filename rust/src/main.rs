@@ -24,17 +24,28 @@ mod isolation_forest;
 
 extern crate rand;
 use rand::distributions::{Distribution, Uniform};
+use std::env;
 
 fn main()
 {
+    let args: Vec<String> = env::args().collect();
 	let num_tests = 10;
+	let num_training_samples = 10;
 	let mut forest = isolation_forest::Forest::new(10, 10);
     let mut rng = rand::thread_rng();
     let range1 = Uniform::from(0..25);
-    let range2 = Uniform::from(25..50);
+    let range2 = Uniform::from(20..45);
+    let mut dump = false;
+
+    for arg in args
+    {
+        if arg == "--dump" {
+            dump = true;
+        }
+    }
 
 	// Training samples.
-	for _i in 0..100
+	for _i in 0..num_training_samples
 	{
 		let mut sample = isolation_forest::Sample::new();
 		let mut features = isolation_forest::FeatureList::new();
@@ -74,12 +85,12 @@ fn main()
 		avg_control_score = avg_control_score + score;
         let normalized_score = forest.normalized_score(&sample);
         avg_control_normalized_score = avg_control_normalized_score + normalized_score;
-		println!("Control test sample {}: {} {}", i, score, normalized_score);
+		println!("Control test sample {}: {:.2} {:.2} {:.2} {:.2}", i, x, y, score, normalized_score);
 	}
 	avg_control_score = avg_control_score / num_tests as f64;
 	avg_control_normalized_score = avg_control_normalized_score / num_tests as f64;
-    println!("Average of control test samples: {}.", avg_control_score);
-    println!("Average of control test samples (normalized): {}.", avg_control_normalized_score);
+    println!("Average of control test samples: {:.2}.", avg_control_score);
+    println!("Average of control test samples (normalized): {:.2}.", avg_control_normalized_score);
 
 	// Outlier samples (different from training samples).
 	println!("\nTest samples that are different from the training set.");
@@ -103,10 +114,14 @@ fn main()
 		avg_outlier_score = avg_outlier_score + score;
         let normalized_score = forest.normalized_score(&sample);
         avg_outlier_normalized_score = avg_outlier_normalized_score + normalized_score;
-		println!("Outlier test sample {}: {} {}", i, score, normalized_score);
+		println!("Outlier test sample {}: {:.2} {:.2} {:.2} {:.2}", i, x, y, score, normalized_score);
 	}
 	avg_outlier_score = avg_outlier_score / num_tests as f64;
 	avg_outlier_normalized_score = avg_outlier_normalized_score / num_tests as f64;
-    println!("Average of outlier test samples: {}.", avg_outlier_score);
-    println!("Average of outlier test samples (normalized): {}.", avg_outlier_normalized_score);
+    println!("Average of outlier test samples: {:.2}.", avg_outlier_score);
+    println!("Average of outlier test samples (normalized): {:.2}.", avg_outlier_normalized_score);
+
+    if dump == true {
+        println!("{}", forest.dump());
+    }
 }
