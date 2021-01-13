@@ -29,7 +29,7 @@
 
 using namespace IsolationForest;
 
-void test(std::ofstream& outStream, size_t numTrainingSamples, size_t numTestSamples, uint32_t numTrees, uint32_t subSamplingSize)
+void test(std::ofstream& outStream, size_t numTrainingSamples, size_t numTestSamples, uint32_t numTrees, uint32_t subSamplingSize, bool dump)
 {
 	Forest forest(numTrees, subSamplingSize);
 
@@ -125,6 +125,11 @@ void test(std::ofstream& outStream, size_t numTrainingSamples, size_t numTestSam
 	std::cout << "Average of outlier test samples: " << avgOutlierScore << std::endl;
 	std::cout << "Average of outlier test samples (normalized): " << avgOutlierNormalizedScore << std::endl;
 	std::cout << "Total time for Test 1: " << elapsedTime.count() << " seconds." << std::endl;
+
+	if (dump)
+	{
+		forest.Dump();
+	}
 }
 
 int main(int argc, const char * argv[])
@@ -135,6 +140,7 @@ int main(int argc, const char * argv[])
 	const uint32_t SUBSAMPLING_SIZE = 10;
 
 	std::ofstream outStream;
+	bool dump = false;
 
 	// Parse the command line arguments.
 	for (int i = 1; i < argc; ++i)
@@ -143,17 +149,22 @@ int main(int argc, const char * argv[])
 		{
 			outStream.open(argv[i + 1]);
 		}
+		if (strstr(argv[i], "dump") == 0)
+		{
+			dump = true;
+		}
 	}
 
 	srand((unsigned int)time(NULL));
 
 	std::cout << "Test 1:" << std::endl;
 	std::cout << "-------" << std::endl;
-	test(outStream, NUM_TRAINING_SAMPLES, NUM_TEST_SAMPLES, NUM_TREES_IN_FOREST, SUBSAMPLING_SIZE);
+	test(outStream, NUM_TRAINING_SAMPLES, NUM_TEST_SAMPLES, NUM_TREES_IN_FOREST, SUBSAMPLING_SIZE, dump);
 	std::cout << std::endl;
+
 	std::cout << "Test 2:" << std::endl;
 	std::cout << "-------" << std::endl;
-	test(outStream, NUM_TRAINING_SAMPLES * 10, NUM_TEST_SAMPLES * 10, NUM_TREES_IN_FOREST * 10, SUBSAMPLING_SIZE * 10);
+	test(outStream, NUM_TRAINING_SAMPLES * 10, NUM_TEST_SAMPLES * 10, NUM_TREES_IN_FOREST * 10, SUBSAMPLING_SIZE * 10, dump);
 	std::cout << std::endl;
 
 	if (outStream.is_open())
