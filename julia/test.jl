@@ -261,7 +261,7 @@ println("Total time for Test 1: ", elapsed_time, ".\n")
 
 @printf("Test 2\n")
 @printf("------\n")
-avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(convert(Int64, 100), convert(Int64, convert(Int64, 1000)), 1000, convert(Int64, 100), parsed_args["plot"])
+avg_control_set_score, avg_control_set_normalized_score, avg_outlier_set_score, avg_outlier_set_normalized_score, elapsed_time = test_random(convert(Int64, 100), convert(Int64, 100), convert(Int64, 1000), convert(Int64, 100), parsed_args["plot"])
 @printf("Average of control test samples: %.4f\n", avg_control_set_score)
 @printf("Average of normalized control test samples: %.4f\n", avg_control_set_normalized_score)
 @printf("Average of outlier test samples: %.4f\n", avg_outlier_set_score)
