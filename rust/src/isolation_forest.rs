@@ -19,6 +19,7 @@
 //	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
+ #![allow(dead_code)]
 
 extern crate rand;
 extern crate serde;
@@ -29,7 +30,6 @@ use rand::distributions::{Distribution, Uniform};
 use self::serde::{
 	ser::{SerializeStruct, Serializer}, Serialize, Deserialize
 };
-
 
 /// Each feature has a name and value.
 #[derive(Serialize, Deserialize)]
@@ -145,9 +145,8 @@ impl Forest {
         }
     }
 
+    /// Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
     fn create_tree(&mut self, feature_values: FeatureNameToValuesMap, depth: u32) -> NodeLink {
-        // Creates and returns a single tree. As this is a recursive function, depth indicates the current depth of the recursion.
-
 		// Sanity check.
         let feature_values_len = feature_values.len();
 		if feature_values_len <= 1 {
@@ -197,9 +196,8 @@ impl Forest {
         tree
     }
 
+    /// Creates a forest containing the number of trees specified to the constructor.
     pub fn create(&mut self) {
-        // Creates a forest containing the number of trees specified to the constructor.
-
     	for _i in 0..self.num_trees_to_create {
             let temp_feature_values = self.feature_values.clone();
             let tree = self.create_tree(temp_feature_values, 0);
@@ -209,9 +207,8 @@ impl Forest {
         }
     }
 
+    /// Scores the sample against the specified tree.
     fn score_tree(&self, sample: &Sample, tree: &NodeBox) -> f64 {
-        // Scores the sample against the specified tree.
-
         let mut depth = 0.0;
         let mut current_node = tree;
         let mut done = false;
@@ -277,9 +274,8 @@ impl Forest {
         depth
     }
 
+    /// Scores the sample against the entire forest of trees. Result is the average path length.
     pub fn score(&self, sample: &Sample) -> f64 {
-        // Scores the sample against the entire forest of trees. Result is the average path length.
-
         let mut score = 0.0;
 
         if self.trees.len() > 0 {
@@ -301,10 +297,9 @@ impl Forest {
         result
     }
 
+    /// Scores the sample against the entire forest of trees. Result is normalized so that values
+    /// close to 1 indicate anomalies and values close to zero indicate normal values."""
     pub fn normalized_score(&self, sample: &Sample) -> f64 {
-        // Scores the sample against the entire forest of trees. Result is normalized so that values
-        // close to 1 indicate anomalies and values close to zero indicate normal values."""
-
         let mut score = 0.0;
         let mut avg_path_len = 0.0;
         let num_trees = self.trees.len();
