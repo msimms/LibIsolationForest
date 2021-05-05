@@ -49,6 +49,8 @@ normalized_score = forest.normalized_score(sample)
 
 ## Rust Example
 
+Add `isolation_forest` to your `Cargo.toml` file.
+
 More examples of how to use the Rust version of the library can be found in `lib.rs`. As the library matures, I'll add more test examples to this file.
 
 ```rust
