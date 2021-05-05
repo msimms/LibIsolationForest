@@ -3,6 +3,7 @@ name = "isolation_forest"
 version = "1.1.0"
 authors = ["Michael J Simms <msimms01@gmail.com>"]
 readme = "../README.md"
+description = "An implementation of the Isolation Forest anomoly detection algorithm."
 repository = "https://github.com/msimms/LibIsolationForest/"
 license = "MIT"
 edition = "2018"
