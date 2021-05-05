@@ -48,15 +48,14 @@ mod tests {
 
         // Training samples.
         for _i in 0..num_training_samples {
-            let mut sample = crate::isolation_forest::Sample::new();
-            let mut features = crate::isolation_forest::FeatureList::new();
-
             let x = range1.sample(&mut rng) as u64;
             let y = range1.sample(&mut rng) as u64;
 
+            let mut features = crate::isolation_forest::FeatureList::new();
             features.push(crate::isolation_forest::Feature::new("x", x));
             features.push(crate::isolation_forest::Feature::new("y", y));
 
+            let mut sample = crate::isolation_forest::Sample::new("training");
             sample.add_features(&mut features);
             forest.add_sample(sample);
         }
@@ -70,14 +69,14 @@ mod tests {
         let mut avg_control_score = 0.0;
         let mut avg_control_normalized_score = 0.0;
         for i in 0..num_tests {
-            let mut sample = crate::isolation_forest::Sample::new();
-            let mut features = crate::isolation_forest::FeatureList::new();
-
             let x = range1.sample(&mut rng) as u64;
             let y = range1.sample(&mut rng) as u64;
 
+            let mut features = crate::isolation_forest::FeatureList::new();
             features.push(crate::isolation_forest::Feature::new("x", x));
             features.push(crate::isolation_forest::Feature::new("y", y));
+
+            let mut sample = crate::isolation_forest::Sample::new("normal");
             sample.add_features(&mut features);
 
             // Run a test with the sample that doesn't contain outliers.
@@ -98,14 +97,15 @@ mod tests {
         let mut avg_outlier_score = 0.0;
         let mut avg_outlier_normalized_score = 0.0;
         for i in 0..num_tests {
-            let mut sample = crate::isolation_forest::Sample::new();
-            let mut features = crate::isolation_forest::FeatureList::new();
 
             let x = range2.sample(&mut rng) as u64;
             let y = range2.sample(&mut rng) as u64;
 
+            let mut features = crate::isolation_forest::FeatureList::new();
             features.push(crate::isolation_forest::Feature::new("x", x));
             features.push(crate::isolation_forest::Feature::new("y", y));
+
+            let mut sample = crate::isolation_forest::Sample::new("outlier");
             sample.add_features(&mut features);
 
             // Run a test with the sample that contains outliers.
@@ -123,5 +123,96 @@ mod tests {
         if dump == true {
             println!("{}", forest.dump());
         }
+
+        assert!(avg_control_normalized_score < avg_outlier_normalized_score);
+    }
+
+    #[test]
+    fn iris_test() {
+        let file_path = "../data/iris.data.txt";
+        let file = match std::fs::File::open(&file_path) {
+            Err(why) => panic!("Couldn't open {} {}", file_path, why),
+            Ok(file) => file,
+        };
+
+        let mut reader = csv::Reader::from_reader(file);
+        let mut forest = crate::isolation_forest::Forest::new(10, 10);
+        let training_class_name = "Iris-setosa";
+        let mut training_samples = Vec::new();
+        let mut test_samples = Vec::new();
+        let mut avg_control_set_score = 0.0;
+        let mut avg_outlier_set_score = 0.0;
+        let mut avg_control_set_normalized_score = 0.0;
+        let mut avg_outlier_set_normalized_score = 0.0;
+        let mut num_control_tests = 0;
+        let mut num_outlier_tests = 0;
+        let mut rng = rand::thread_rng();
+        let range = Uniform::from(0..10);
+
+        for record in reader.records() {
+            let record = record.unwrap();
+
+            let sepal_length_cm: f64 = record[0].parse().unwrap();
+            let sepal_width_cm: f64 = record[1].parse().unwrap();
+            let petal_length_cm: f64 = record[2].parse().unwrap();
+            let petal_width_cm: f64 = record[3].parse().unwrap();
+            let name: String = record[4].parse().unwrap();
+
+            let mut features = crate::isolation_forest::FeatureList::new();
+            features.push(crate::isolation_forest::Feature::new("sepal length in cm", (sepal_length_cm * 10.0) as u64));
+            features.push(crate::isolation_forest::Feature::new("sepal width in cm", (sepal_width_cm * 10.0) as u64));
+            features.push(crate::isolation_forest::Feature::new("petal length in cm", (petal_length_cm * 10.0) as u64));
+            features.push(crate::isolation_forest::Feature::new("petal width in cm", (petal_width_cm * 10.0) as u64));
+
+            let mut sample = crate::isolation_forest::Sample::new(&name);
+            sample.add_features(&mut features);
+
+            // Randomly split the samples into training and test samples.
+            let x = range.sample(&mut rng) as u64;
+            if x > 5 && name == training_class_name {
+                forest.add_sample(sample.clone());
+                training_samples.push(sample);
+            }
+            else {
+                test_samples.push(sample);
+            }
+        }
+
+        // Create the forest.
+        forest.create();
+
+        // Use each test sample.
+        for test_sample in test_samples {
+            let score = forest.score(&test_sample);
+            let normalized_score = forest.normalized_score(&test_sample);
+
+            if training_class_name == test_sample.name {
+                avg_control_set_score = avg_control_set_score + score;
+                avg_control_set_normalized_score = avg_control_set_normalized_score + normalized_score;
+                num_control_tests = num_control_tests + 1;
+            }
+            else {
+                avg_outlier_set_score = avg_outlier_set_score + score;
+                avg_outlier_set_normalized_score = avg_outlier_set_normalized_score + normalized_score;
+                num_outlier_tests = num_outlier_tests + 1;
+            }
+        }
+
+        // Compute statistics.
+        if num_control_tests > 0 {
+            avg_control_set_score = avg_control_set_score / num_control_tests as f64;
+            avg_control_set_normalized_score = avg_control_set_normalized_score / num_control_tests as f64;
+        }
+        if num_outlier_tests > 0 {
+            avg_outlier_set_score = avg_outlier_set_score / num_outlier_tests as f64;
+            avg_outlier_set_normalized_score = avg_outlier_set_normalized_score / num_outlier_tests as f64;
+        }
+
+        println!("Avg Control Score: {}", avg_control_set_score);
+        println!("Avg Control Normalized Score: {}", avg_control_set_normalized_score);
+        println!("Avg Outlier Score: {}", avg_outlier_set_score);
+        println!("Avg Outlier Normalized Score: {}", avg_outlier_set_normalized_score);
+
+        assert!(avg_control_set_normalized_score < avg_outlier_set_normalized_score);
     }
 }

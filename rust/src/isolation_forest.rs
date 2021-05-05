@@ -32,9 +32,9 @@ use self::serde::{
 };
 
 /// Each feature has a name and value.
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Feature {
-    name: String,
+    pub name: String,
     value: u64,
 }
 
@@ -50,14 +50,15 @@ pub type FeatureNameToValuesMap = HashMap<String, Uint64Vec>;
 
 /// This class represents a sample.
 /// Each sample has a name and list of features.
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Sample {
+    pub name: String,
     features: FeatureList,
 }
 
 impl Sample {
-    pub fn new () -> Sample {
-        Sample { features: Sample::create_feature_list() }
+    pub fn new (sample_name: &str) -> Sample {
+        Sample { name: sample_name.to_string(), features: Sample::create_feature_list() }
     }
 
     fn create_feature_list() -> FeatureList {
