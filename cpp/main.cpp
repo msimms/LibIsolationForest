@@ -20,6 +20,8 @@
 //	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //	SOFTWARE.
 
+// This file contains test and example code for using the C++ IsolationForest implementation.
+
 #include "IsolationForest.h"
 #include <stdlib.h>
 #include <inttypes.h>
@@ -134,6 +136,8 @@ void test(std::ofstream& outStream, size_t numTrainingSamples, size_t numTestSam
 
 int main(int argc, const char * argv[])
 {
+	const char* ARG_OUTFILE = "outfile";
+	const char* ARG_DUMP = "dump";
 	const size_t NUM_TRAINING_SAMPLES = 100;
 	const size_t NUM_TEST_SAMPLES = 10;
 	const uint32_t NUM_TREES_IN_FOREST = 10;
@@ -145,11 +149,11 @@ int main(int argc, const char * argv[])
 	// Parse the command line arguments.
 	for (int i = 1; i < argc; ++i)
 	{
-		if ((strstr(argv[i], "outfile") == 0) && (i + 1 < argc))
+		if ((strncmp(argv[i], ARG_OUTFILE, strlen(ARG_OUTFILE)) == 0) && (i + 1 < argc))
 		{
 			outStream.open(argv[i + 1]);
 		}
-		if (strstr(argv[i], "dump") == 0)
+		if (strncmp(argv[i], ARG_DUMP, strlen(ARG_DUMP)) == 0)
 		{
 			dump = true;
 		}
