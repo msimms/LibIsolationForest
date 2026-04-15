@@ -25,8 +25,8 @@ extern crate rand;
 extern crate serde;
 extern crate serde_json;
 
+use rand::Rng;
 use std::collections::HashMap;
-use rand::distributions::{Distribution, Uniform};
 use self::serde::{
 	ser::{SerializeStruct, Serializer}, Serialize, Deserialize
 };
@@ -96,7 +96,6 @@ pub struct Forest {
     trees: NodeList, // The decision trees that comprise the forest
     num_trees_to_create: u32, // The maximum number of trees to create
     sub_sampling_size: u32, // The maximum depth of a tree
-    rng: rand::prelude::ThreadRng,
 }
 
 impl Serialize for Forest {
@@ -114,7 +113,7 @@ impl Serialize for Forest {
 
 impl Forest {
     pub fn new (num_trees_to_create: u32, sub_sampling_size: u32) -> Forest {
-        Forest { num_trees_to_create, sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map(), rng: rand::thread_rng() }
+        Forest { num_trees_to_create, sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map() }
     }
 
     fn initialize_trees() -> NodeList {
@@ -160,8 +159,7 @@ impl Forest {
 		}
 
 		// Randomly select a feature.
-        let range = Uniform::from(0..feature_values_len);
-		let selected_feature_index = range.sample(&mut self.rng) as usize;
+        let selected_feature_index = rand::rng().random_range(0..feature_values_len);
         let selected_feature_name = feature_values.keys().nth(selected_feature_index);
         let unwrapped_feature_name = selected_feature_name.unwrap();
 
@@ -171,8 +169,7 @@ impl Forest {
         if feature_value_set_len <= 1 {
             return None;
         }
-        let range2 = Uniform::from(0..feature_value_set_len);
-        let split_value_index = range2.sample(&mut self.rng) as usize;
+        let split_value_index = rand::rng().random_range(0..feature_value_set_len);
         let split_value = feature_value_set[split_value_index];
 
         // Create a tree node to hold the split value.
