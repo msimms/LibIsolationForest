@@ -40,7 +40,7 @@ pub struct Feature {
 
 impl Feature {
     pub fn new (name: &str, value: u64) -> Feature {
-        Feature { name: name.to_string(), value: value }
+        Feature { name: name.to_string(), value }
     }
 }
 
@@ -82,7 +82,7 @@ struct Node {
 
 impl Node {
     pub fn new (feature_name: &str, split_value: u64) -> Node {
-        Node { feature_name: feature_name.to_string(), split_value: split_value, left: None, right: None }
+        Node { feature_name: feature_name.to_string(), split_value, left: None, right: None }
     }
 }
 
@@ -114,7 +114,7 @@ impl Serialize for Forest {
 
 impl Forest {
     pub fn new (num_trees_to_create: u32, sub_sampling_size: u32) -> Forest {
-        Forest { num_trees_to_create: num_trees_to_create, sub_sampling_size: sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map(), rng: rand::thread_rng() }
+        Forest { num_trees_to_create, sub_sampling_size, trees: Forest::initialize_trees(), feature_values: Forest::create_feature_name_to_values_map(), rng: rand::thread_rng() }
     }
 
     fn initialize_trees() -> NodeList {
